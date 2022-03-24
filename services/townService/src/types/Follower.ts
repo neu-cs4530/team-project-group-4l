@@ -1,5 +1,3 @@
-import Player from "./Player";
+import APlayer from './APlayer';
 
-export default class Follower extends Player {
-
-}
+export default class Follower extends APlayer {}
