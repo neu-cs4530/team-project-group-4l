@@ -33,7 +33,7 @@ export default interface CoveyTownListener {
    * Called when a conversation area is created or updated
    * @param conversationArea the conversation area that is updated or created
    */
-  onConversationAreaUpdated(conversationArea: ServerConversationArea) : void;
+  onConversationAreaUpdated(conversationArea: ServerConversationArea): void;
 
   /**
    * Called when a conversation area is destroyed
