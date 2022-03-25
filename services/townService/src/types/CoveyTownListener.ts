@@ -7,6 +7,11 @@ import Player from './Player';
  */
 export default interface CoveyTownListener {
   /**
+   * Called when a player spawns a pet, where we pass the created follower 
+   * @param player The Player spawning the pet
+   */
+  onFollowerSpawned(spawnedFollower: Player): void;
+  /**
    * Called when a player joins a town
    * @param newPlayer the new player
    */

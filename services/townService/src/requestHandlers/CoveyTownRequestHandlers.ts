@@ -231,6 +231,9 @@ export function conversationAreaCreateHandler(
  */
 function townSocketAdapter(socket: Socket): CoveyTownListener {
   return {
+    onFollowerSpawned(spawnedFollower: Player) {
+      socket.emit('followerSpawned', spawnedFollower);
+    },
     onPlayerMoved(movedPlayer: Player) {
       socket.emit('playerMoved', movedPlayer);
     },
@@ -297,5 +300,9 @@ export function townSubscriptionHandler(socket: Socket): void {
   // location, inform the CoveyTownController
   socket.on('playerMovement', (movementData: UserLocation) => {
     townController.updatePlayerLocation(s.player, movementData);
+  });
+
+  socket.on('followerSpawned', () => {
+    townController.addFollower(s.player);
   });
 }
