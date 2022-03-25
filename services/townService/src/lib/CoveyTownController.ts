@@ -114,14 +114,10 @@ export default class CoveyTownController {
   /**
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
-   * @param session The PlayerSession we are adding this follower to.
+   * @param player The Player we are adding this follower to. 
    */
-  addFollower(session?: PlayerSession): void {
-    if (session === undefined) {
-      return;
-    }
-    let { player } = session;
-
+  addFollower(player: Player): void {
+  
     const follower: Player = new Player('Pet');
 
     while (player.follower !== undefined) {
