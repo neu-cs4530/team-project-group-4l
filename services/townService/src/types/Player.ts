@@ -9,7 +9,8 @@ export default class Player {
   /** The current location of this user in the world map * */
   public location: UserLocation;
 
-  public follower: Player | undefined;
+  /** The follower of this Player, or undefined if one has not been created **/
+  private _follower?: Player;
 
   /** The unique identifier for this player * */
   private readonly _id: string;
@@ -45,6 +46,14 @@ export default class Player {
 
   set activeConversationArea(conversationArea: ServerConversationArea | undefined) {
     this._activeConversationArea = conversationArea;
+  }
+
+  get follower(): Player | undefined {
+    return this._follower;
+  }
+
+  set follower(follower: Player | undefined) {
+    this._follower = follower;
   }
 
   /**
