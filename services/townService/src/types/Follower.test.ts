@@ -77,5 +77,45 @@ describe('Follower', () => {
       expect(player.follower).toBe(undefined);
     });
   });
+  
+  describe('follower location', () => {
+    it('player follower field should have a correctly positioned follower', () => {
+      const player = new Player('test player');
+      const pet = new Player('test pet');
+      player.follower = pet;
+      expect(player.follower?.userName).toEqual(pet.userName)
+      expect(player.follower.location).toEqual(player.location);
+    });
+    it('multiple player followers should have correct positions', () => {
+      const player = new Player('test player');
+      const pet = new Player('test pet');
+      const pet2 = new Player('test pet2');
+      testingTown.addPlayer(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      expect(player.follower?.userName).toEqual(pet.userName)
+      expect(player.follower?.location).toEqual(player.location);
+      expect(player.follower?.?followers.location).toEqual(player.location);
+    });
+    
+    describe('follower conversation area', () => {
+    it('player follower without conversation area is same as plater', () => {
+      const player1 = new Player('test player');
+      testingTown.addPlayer(player1);
+      testingTown.addFollower(player1);
+      expect(player.follower?.conversationArea).toEqual(player.conversationArea);
+      expect(player.follower.conversationArea).not.toBeDefined();
+    });
+    it('multiple player followers should have correct conversationarea', () => {
+      const player = new Player('test player');
+      const pet = new Player('test pet');
+      const pet2 = new Player('test pet2');
+      testingTown.addPlayer(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      expect(player.follower?.conversationArea).toEqual(player.conversationArea);
+      expect(player.follower?.follower?.conversationArea).toEqual(player.conversationArea);
+    });
+  }
 
 });
