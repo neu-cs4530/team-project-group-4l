@@ -51,6 +51,8 @@ class CoveyGameScene extends Phaser.Scene {
 
   private video: Video;
 
+  private spawnFollowerDebouncerCount = 0; 
+
   private emitMovement: (loc: UserLocation) => void;
 
   private spawnFollower: (playerID: string) => void; 
@@ -233,7 +235,12 @@ class CoveyGameScene extends Phaser.Scene {
 
   requestToSpawnFollower() {
     if (this.cursors.find(keySet => keySet.space?.isDown)) {
-      return true; 
+      if (this.spawnFollowerDebouncerCount === 0) {
+        this.spawnFollowerDebouncerCount = 90; 
+        return true; 
+      }
+      this.spawnFollowerDebouncerCount -= 1; 
+      return false; 
     } 
     return false; 
   }

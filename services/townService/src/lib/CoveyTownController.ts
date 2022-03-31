@@ -119,7 +119,7 @@ export default class CoveyTownController {
   addFollower(player: Player): void {
   
     const follower: Player = new Player('Pet');
-
+    
     while (player.follower !== undefined) {
       player = player.follower;
     }
@@ -181,8 +181,8 @@ export default class CoveyTownController {
     );
     const prevConversation = player.activeConversationArea;
 
-    const prevLocation = player.location;
-
+    // const prevLocation = player.location;
+    player.previous_steps.push(player.location); 
     player.location = location;
     player.activeConversationArea = conversation;
 
@@ -200,7 +200,12 @@ export default class CoveyTownController {
 
     // If the follower of this player exists, recursively chain update any followers following each other to update to the location the object of interest was last at.
     if (player.follower !== undefined) {
-      this.updatePlayerLocation(player.follower, prevLocation);
+      player.previous_steps = player.previous_steps.splice(-10); 
+      const oldestLocation = player.previous_steps.shift(); 
+
+      if (oldestLocation !== undefined) {
+        this.updatePlayerLocation(player.follower, oldestLocation);
+      }
     }
   }
 
