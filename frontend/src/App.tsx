@@ -50,6 +50,7 @@ type CoveyAppUpdate =
         myPlayerID: string;
         socket: Socket;
         emitMovement: (location: UserLocation) => void;
+        spawnFollower: (playerID: string) => void; 
       };
     }
   | { action: 'disconnect' };
@@ -64,6 +65,7 @@ function defaultAppState(): CoveyAppState {
     userName: '',
     socket: null,
     emitMovement: () => {},
+    spawnFollower: () => {}, 
     apiClient: new TownsServiceClient(),
   };
 }
@@ -77,6 +79,7 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
     userName: state.userName,
     socket: state.socket,
     emitMovement: state.emitMovement,
+    spawnFollower: state.spawnFollower, 
     apiClient: state.apiClient,
   };
 
@@ -89,6 +92,7 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
       nextState.currentTownIsPubliclyListed = update.data.townIsPubliclyListed;
       nextState.userName = update.data.userName;
       nextState.emitMovement = update.data.emitMovement;
+      nextState.spawnFollower = update.data.spawnFollower; 
       nextState.socket = update.data.socket;
       break;
     case 'disconnect':
@@ -181,6 +185,11 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           }
         }
       };
+
+      const spawnFollower = (playerID: string) => {
+        socket.emit('spawnFollower', playerID); 
+      }
+
       socket.on('newPlayer', (player: ServerPlayer) => {
         localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
         recalculateNearbyPlayers();
@@ -245,7 +254,9 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           myPlayerID: gamePlayerID,
           townIsPubliclyListed: video.isPubliclyListed,
           emitMovement,
+          spawnFollower, 
           socket,
+           
         },
       });
 

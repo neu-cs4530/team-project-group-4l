@@ -9,6 +9,8 @@ export default class Player {
 
   public label?: Phaser.GameObjects.Text;
 
+  public follower?: Player; 
+
   constructor(id: string, userName: string, location: UserLocation) {
     this._id = id;
     this._userName = userName;

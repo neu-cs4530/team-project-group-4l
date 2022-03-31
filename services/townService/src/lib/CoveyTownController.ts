@@ -114,7 +114,7 @@ export default class CoveyTownController {
   /**
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
-   * @param player The Player we are adding this follower to. 
+   * @param player The Player we are adding this follower to.
    */
   addFollower(player: Player): void {
   
