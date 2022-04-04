@@ -1,5 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
+import { BoundingBox, ServerConversationArea, ServerPetArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
@@ -54,6 +54,10 @@ export default class CoveyTownController {
     return this._conversationAreas;
   }
 
+  get petAreas(): ServerPetArea[] {
+    return this._petAreas;
+  }
+
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
@@ -68,6 +72,9 @@ export default class CoveyTownController {
 
   /** The list of currently active ConversationAreas in this town */
   private _conversationAreas: ServerConversationArea[] = [];
+
+  /** The list of PetAreas in this town */
+  private _petAreas: ServerPetArea[] = [];
 
   private readonly _coveyTownID: string;
 
@@ -114,10 +121,10 @@ export default class CoveyTownController {
   /**
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
-   * @param player The Player we are adding this follower to. 
+   * @param player The Player we are adding this follower to.
    */
   addFollower(player: Player): void {
-  
+
     const follower: Player = new Player('Pet');
 
     while (player.follower !== undefined) {
