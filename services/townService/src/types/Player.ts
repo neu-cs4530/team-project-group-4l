@@ -12,7 +12,7 @@ export default class Player {
   /** The follower of this Player, or undefined if one has not been created **/
   private _follower?: Player;
 
-  public previous_steps: UserLocation[] = []; 
+  public previousSteps: UserLocation[] = []; 
 
   /** The unique identifier for this player * */
   private readonly _id: string;

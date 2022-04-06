@@ -236,7 +236,7 @@ class CoveyGameScene extends Phaser.Scene {
   requestToSpawnFollower() {
     if (this.cursors.find(keySet => keySet.space?.isDown)) {
       if (this.spawnFollowerDebouncerCount === 0) {
-        this.spawnFollowerDebouncerCount = 90; 
+        this.spawnFollowerDebouncerCount = 10; 
         return true; 
       }
       this.spawnFollowerDebouncerCount -= 1; 
