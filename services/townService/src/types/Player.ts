@@ -12,6 +12,8 @@ export default class Player {
   /** The follower of this Player, or undefined if one has not been created **/
   private _follower?: Player;
 
+  public previousSteps: UserLocation[] = []; 
+
   /** The unique identifier for this player * */
   private readonly _id: string;
 
@@ -51,6 +53,7 @@ export default class Player {
   get follower(): Player | undefined {
     return this._follower;
   }
+
 
   set follower(follower: Player | undefined) {
     this._follower = follower;

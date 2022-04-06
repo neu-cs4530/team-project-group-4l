@@ -51,7 +51,11 @@ class CoveyGameScene extends Phaser.Scene {
 
   private video: Video;
 
+  private spawnFollowerDebouncerCount = 0; 
+
   private emitMovement: (loc: UserLocation) => void;
+
+  private spawnFollower: (playerID: string) => void; 
 
   private currentConversationArea?: ConversationGameObjects;
 
@@ -66,12 +70,14 @@ class CoveyGameScene extends Phaser.Scene {
     emitMovement: (loc: UserLocation) => void,
     setNewConversation: (conv: ConversationArea) => void,
     myPlayerID: string,
+    spawnFollower: (playerID: string) => void, 
   ) {
     super('PlayGame');
     this.video = video;
     this.emitMovement = emitMovement;
     this.myPlayerID = myPlayerID;
     this.setNewConversation = setNewConversation;
+    this.spawnFollower = spawnFollower; 
   }
 
   preload() {
@@ -227,6 +233,18 @@ class CoveyGameScene extends Phaser.Scene {
     return undefined;
   }
 
+  requestToSpawnFollower() {
+    if (this.cursors.find(keySet => keySet.space?.isDown)) {
+      if (this.spawnFollowerDebouncerCount === 0) {
+        this.spawnFollowerDebouncerCount = 10; 
+        return true; 
+      }
+      this.spawnFollowerDebouncerCount -= 1; 
+      return false; 
+    } 
+    return false; 
+  }
+
   update() {
     if (this.paused) {
       return;
@@ -272,6 +290,7 @@ class CoveyGameScene extends Phaser.Scene {
           break;
       }
 
+
       // Normalize and scale the velocity so that player can't move faster along a diagonal
       this.player.sprite.body.velocity.normalize().scale(speed);
 
@@ -313,6 +332,11 @@ class CoveyGameScene extends Phaser.Scene {
           }
         }
         this.emitMovement(this.lastLocation);
+        
+      }
+
+      if (this.requestToSpawnFollower()) {
+        this.spawnFollower(this.myPlayerID); 
       }
     }
   }
@@ -649,7 +673,7 @@ class CoveyGameScene extends Phaser.Scene {
 
 export default function WorldMap(): JSX.Element {
   const video = Video.instance();
-  const { emitMovement, myPlayerID } = useCoveyAppState();
+  const { emitMovement, myPlayerID, spawnFollower} = useCoveyAppState();
   const conversationAreas = useConversationAreas();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
   const [newConversation, setNewConversation] = useState<ConversationArea>();
@@ -677,7 +701,7 @@ export default function WorldMap(): JSX.Element {
 
     const game = new Phaser.Game(config);
     if (video) {
-      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID);
+      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID, spawnFollower);
       setGameScene(newGameScene);
       game.scene.add('coveyBoard', newGameScene, true);
       video.pauseGame = () => {

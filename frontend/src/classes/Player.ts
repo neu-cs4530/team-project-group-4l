@@ -9,6 +9,10 @@ export default class Player {
 
   public label?: Phaser.GameObjects.Text;
 
+  public follower?: Player; 
+
+  public previousSteps: UserLocation[] = []; 
+
   constructor(id: string, userName: string, location: UserLocation) {
     this._id = id;
     this._userName = userName;
@@ -22,6 +26,7 @@ export default class Player {
   get id(): string {
     return this._id;
   }
+
 
   static fromServerPlayer(playerFromServer: ServerPlayer): Player {
     return new Player(playerFromServer._id, playerFromServer._userName, playerFromServer.location);

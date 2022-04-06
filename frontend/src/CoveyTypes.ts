@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io-client';
-import { UserLocation } from './classes/Player';
+import Player, { UserLocation } from './classes/Player';
 import TownsServiceClient from './classes/TownsServiceClient';
 
 export type CoveyEvent = 'playerMoved' | 'playerAdded' | 'playerRemoved';
@@ -20,6 +20,7 @@ export type CoveyAppState = {
   currentTownIsPubliclyListed: boolean,
   myPlayerID: string,
   emitMovement: (location: UserLocation) => void,
+  spawnFollower: (playerID: string) => void, 
   socket: Socket | null,
   apiClient: TownsServiceClient
 };

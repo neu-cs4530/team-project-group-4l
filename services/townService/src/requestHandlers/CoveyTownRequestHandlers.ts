@@ -234,12 +234,15 @@ function townSocketAdapter(socket: Socket): CoveyTownListener {
     onFollowerSpawned(spawnedFollower: Player) {
       socket.emit('followerSpawned', spawnedFollower);
     },
-    onPlayerMoved(movedPlayer: Player) {
-      socket.emit('playerMoved', movedPlayer);
+    onPlayerMoved(movedPlayers: Player[]) {
+      socket.emit('playerMoved', movedPlayers);
     },
     onPlayerDisconnected(removedPlayer: Player) {
       socket.emit('playerDisconnect', removedPlayer);
     },
+    onFollowerJoined(playerID: string, newFollower: Player) {
+      socket.emit('newFollower', playerID, newFollower); 
+    }, 
     onPlayerJoined(newPlayer: Player) {
       socket.emit('newPlayer', newPlayer);
     },
@@ -302,7 +305,9 @@ export function townSubscriptionHandler(socket: Socket): void {
     townController.updatePlayerLocation(s.player, movementData);
   });
 
-  socket.on('followerSpawned', () => {
-    townController.addFollower(s.player);
+  socket.on('spawnFollower', (playerID: string) => {
+    console.log("Player id: "); 
+    console.log(playerID); 
+    townController.addFollower(s.player, playerID);
   });
 }
