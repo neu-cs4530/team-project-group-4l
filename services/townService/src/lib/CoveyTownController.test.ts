@@ -27,13 +27,13 @@ describe('CoveyTownController', () => {
   beforeEach(() => {
     mockTwilioVideo.getTokenForTown.mockClear();
   });
-  it('constructor should set the friendlyName property', () => { 
+  it('constructor should set the friendlyName property', () => {
     const townName = `FriendlyNameTest-${nanoid()}`;
     const townController = new CoveyTownController(townName, false);
     expect(townController.friendlyName)
       .toBe(townName);
   });
-  describe('addPlayer', () => { 
+  describe('addPlayer', () => {
     it('should use the coveyTownID and player ID properties when requesting a video token',
       async () => {
         const townName = `FriendlyNameTest-${nanoid()}`;
@@ -272,7 +272,7 @@ describe('CoveyTownController', () => {
       expect(areas[0].occupantsByID.length).toBe(1);
       expect(areas[0].occupantsByID[0]).toBe(player.id);
 
-    }); 
+    });
     it('should emit an onConversationUpdated event when a conversation area gets a new occupant', async () =>{
 
       const newConversationArea = TestUtils.createConversationForTesting({ boundingBox: { x: 10, y: 10, height: 5, width: 5 } });
@@ -288,5 +288,11 @@ describe('CoveyTownController', () => {
       testingTown.updatePlayerLocation(player, newLocation);
       expect(mockListener.onConversationAreaUpdated).toHaveBeenCalledTimes(1);
     });
+  });
+  describe('addFollower', () => {
+    it('should do something',
+      async () => {
+
+      });
   });
 });

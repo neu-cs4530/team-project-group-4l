@@ -124,25 +124,40 @@ export default class CoveyTownController {
    * @param player The Player we are adding this follower to.
    */
   addFollower(player: Player): void {
+    if (inPetArea(player)) {
+      const follower: Player = new Player('Pet');
 
-    const follower: Player = new Player('Pet');
+      while (player.follower !== undefined) {
+        player = player.follower;
+      }
+      player.follower = follower;
+      follower.location = player.location;
+      follower.activeConversationArea = player.activeConversationArea;
 
-    while (player.follower !== undefined) {
-      player = player.follower;
+      this._players.push(follower);
+
+      // If this player has an active conversation, notify the area that a player has just joined this area.
+      if (player.activeConversationArea !== undefined) {
+        const convArea: ServerConversationArea = player.activeConversationArea;
+        player.activeConversationArea.occupantsByID.push(follower.id);
+        this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
+      }
+      this._listeners.forEach(listener => listener.onPlayerJoined(follower));
     }
-    player.follower = follower;
-    follower.location = player.location;
-    follower.activeConversationArea = player.activeConversationArea;
+  }
 
-    this._players.push(follower);
-
-    // If this player has an active conversation, notify the area that a player has just joined this area.
-    if (player.activeConversationArea !== undefined) {
-      const convArea: ServerConversationArea = player.activeConversationArea;
-      player.activeConversationArea.occupantsByID.push(follower.id);
-      this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
-    }
-    this._listeners.forEach(listener => listener.onPlayerJoined(follower));
+  /**
+   * Checks whether or not a player is within any PetAreas
+   * @param player The Player to determine the location of.
+   */
+  inPetArea(player: Player): boolean {
+    let withinArea: boolean = false;
+    this.petAreas.forEach((area) => {
+      if (player.isWithinPetArea(area)) {
+        withinArea = true;
+      }
+    });
+    return withinArea;
   }
 
   /**
