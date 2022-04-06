@@ -54,6 +54,10 @@ export default class CoveyTownController {
     return this._conversationAreas;
   }
 
+  get petAreas(): ServerConversationArea[] {
+    return this._petAreas;
+  }
+
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
@@ -78,6 +82,8 @@ export default class CoveyTownController {
   private _isPubliclyListed: boolean;
 
   private _capacity: number;
+
+  private _petAreas: ServerConversationArea[] = [];
 
   constructor(friendlyName: string, isPubliclyListed: boolean) {
     this._coveyTownID = process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID();
@@ -119,6 +125,16 @@ export default class CoveyTownController {
   addFollower(player: Player): void {
   
     const follower: Player = new Player('Pet');
+    
+    let inPetA: boolean = false;
+    for (let i = 0; i < this.petAreas.length; i += 1) {
+      if (player.isWithin(this.petAreas[i])) {
+        inPetA = true;
+      }
+    }
+    if (!inPetA) {
+      return;
+    }
 
     while (player.follower !== undefined) {
       player = player.follower;
@@ -193,6 +209,18 @@ export default class CoveyTownController {
       if (conversation) {
         conversation.occupantsByID.push(player.id);
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(conversation));
+      }
+    }
+
+    for (let i = 0; i < this.petAreas.length; i += 1) {
+      if (player.isWithin(this.petAreas[i])) {
+        this.petAreas[i].occupantsByID.push(player.id);
+      }
+      const plIND: number = this.petAreas[i].occupantsByID.indexOf(player.id)
+      if (plIND > 0) {
+        if (!player.isWithin(this.petAreas[i])) {
+          this.petAreas[i].occupantsByID.splice(plIND, 1);
+        }
       }
     }
 
@@ -333,5 +361,10 @@ export default class CoveyTownController {
 
   disconnectAllPlayers(): void {
     this._listeners.forEach(listener => listener.onTownDestroyed());
+  }
+
+  //Function to initalize the 4 pet areas will add funcitonality when exact positions are determined
+  addPetAreas(): void {
+
   }
 }
