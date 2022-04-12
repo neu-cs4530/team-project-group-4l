@@ -121,24 +121,32 @@ export default class CoveyTownController {
   
     const follower: Player = new Player('Pet');
     
+    let currentDepth = 0; 
+
     while (player.follower !== undefined) {
       player = player.follower;
+      currentDepth += 1; 
     }
-    player.follower = follower;
-    follower.location = player.location;
-    follower.activeConversationArea = player.activeConversationArea;
 
-    this._players.push(follower);
+    if (currentDepth <= 6) {
+      player.follower = follower;
+      follower.location = player.location;
+      follower.activeConversationArea = player.activeConversationArea;
 
-    // If this player has an active conversation, notify the area that a player has just joined this area.
-    if (player.activeConversationArea !== undefined) {
-      const convArea: ServerConversationArea = player.activeConversationArea;
-      player.activeConversationArea.occupantsByID.push(follower.id);
-      this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
+      this._players.push(follower);
+
+      // If this player has an active conversation, notify the area that a player has just joined this area.
+      if (player.activeConversationArea !== undefined) {
+        const convArea: ServerConversationArea = player.activeConversationArea;
+        player.activeConversationArea.occupantsByID.push(follower.id);
+        this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
+      }
+      this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }
-    this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
-  }
 
+    }
+
+    
   /**
    * Destroys all data related to a player in this town.
    *
@@ -177,10 +185,10 @@ export default class CoveyTownController {
    * @param location New location for this player
    */
   updatePlayerLocation(player: Player, location: UserLocation): void {
-    const updated_players = this.updatePlayerLocationHelper(player, location); 
+    const updated_players = this.updatePlayerLocationHelper(player, location, location['moving']);
 
     this._listeners.forEach(listener => listener.onPlayerMoved(updated_players));
-
+    
   }
 
   /**
@@ -191,7 +199,9 @@ export default class CoveyTownController {
    * @param player The Player we are updating this for 
    * @param location The location the player has moved to 
    */
-  private updatePlayerLocationHelper(player: Player, location: UserLocation): Player[] {
+  private updatePlayerLocationHelper(player: Player, location: UserLocation, playerMoving:boolean): Player[] {
+    location['moving'] = playerMoving; 
+
     const conversation = this.conversationAreas.find(
       conv => conv.label === location.conversationLabel,
     );
@@ -211,14 +221,14 @@ export default class CoveyTownController {
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(conversation));
       }
     } 
-
+    player.previousSteps = player.previousSteps.splice(-10); 
 
     if (player.follower !== undefined) {
-      player.previousSteps = player.previousSteps.splice(-10); 
+      // player.previousSteps = player.previousSteps.splice(-10); 
       const oldestLocation = player.previousSteps.shift(); 
 
       if (oldestLocation !== undefined) {
-        const updated_players = this.updatePlayerLocationHelper(player.follower, oldestLocation);
+        const updated_players = this.updatePlayerLocationHelper(player.follower, oldestLocation, playerMoving);
         updated_players.push(player);
         return updated_players; 
       }

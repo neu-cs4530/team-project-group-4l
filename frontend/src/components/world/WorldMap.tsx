@@ -186,6 +186,22 @@ class CoveyGameScene extends Phaser.Scene {
       myPlayer = new Player(player.id, player.userName, location);
       this.players.push(myPlayer);
     }
+
+    // myPlayer.previousSteps.push(myPlayer)
+    // if (myPlayer.follower) {
+    //   const currentFollower = myPlayer.follower; 
+    //   const oldestLocation = myPlayer.previousSteps.shift(); 
+
+    //   while(currentFollower) {
+    //     if (oldestLocation && currentFollower.location) {
+    //       currentFollower.previousSteps.push(oldestLocation); 
+    //       currentFollower.previousSteps = currentFollower.previousSteps.splice(-10); 
+          
+         
+    //     }
+    //   }
+    // }
+
     if (this.myPlayerID !== myPlayer.id && this.physics && player.location) {
       let { sprite } = myPlayer;
       if (!sprite) {
@@ -251,7 +267,7 @@ class CoveyGameScene extends Phaser.Scene {
     }
     if (this.player && this.cursors) {
       const speed = 175;
-
+      
       const prevVelocity = this.player.sprite.body.velocity.clone();
       const body = this.player.sprite.body as Phaser.Physics.Arcade.Body;
 
@@ -304,6 +320,7 @@ class CoveyGameScene extends Phaser.Scene {
         (isMoving && this.lastLocation.rotation !== primaryDirection) ||
         this.lastLocation.moving !== isMoving
       ) {
+        const previousLocation = this.lastLocation; 
         if (!this.lastLocation) {
           this.lastLocation = {
             x: body.x,
@@ -331,6 +348,13 @@ class CoveyGameScene extends Phaser.Scene {
             this.lastLocation.conversationLabel = undefined;
           }
         }
+        const myPlayer = this.players.find(p => p.id === this.myPlayerID);
+        
+        if (myPlayer && previousLocation) {
+          myPlayer.previousSteps.push(previousLocation); 
+          myPlayer.previousSteps = myPlayer.previousSteps.splice(-10); 
+        }
+
         this.emitMovement(this.lastLocation);
         
       }
@@ -717,8 +741,10 @@ export default function WorldMap(): JSX.Element {
   }, [video, emitMovement, setNewConversation, myPlayerID]);
 
   useEffect(() => {
-    const movementDispatcher = (player: ServerPlayer) => {
-      gameScene?.updatePlayerLocation(Player.fromServerPlayer(player));
+    const movementDispatcher = (updatedPlayers: ServerPlayer[]) => {
+      for (let idx = 0; idx < updatedPlayers.length; idx += 1) {
+        gameScene?.updatePlayerLocation(Player.fromServerPlayer(updatedPlayers[idx]));
+      }
     };
     playerMovementCallbacks.push(movementDispatcher);
     return () => {
