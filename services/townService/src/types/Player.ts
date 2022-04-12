@@ -14,6 +14,8 @@ export default class Player {
 
   public previousSteps: UserLocation[] = []; 
 
+  public moduloSteps: number = 0; 
+
   /** The unique identifier for this player * */
   private readonly _id: string;
 

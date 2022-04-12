@@ -55,6 +55,7 @@ type CoveyAppUpdate =
     }
   | { action: 'disconnect' };
 
+
 function defaultAppState(): CoveyAppState {
   return {
     myPlayerID: '',
@@ -163,6 +164,8 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
       setConversationAreas(localConversationAreas);
       setNearbyPlayers(localNearbyPlayers);
 
+      
+
       const recalculateNearbyPlayers = () => {
         const newNearbyPlayers = calculateNearbyPlayers(localPlayers, currentLocation);
         if (!samePlayers(localNearbyPlayers, newNearbyPlayers)) {
@@ -172,9 +175,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
       };
       const emitMovement = (location: UserLocation) => {
         const now = Date.now();
-        // let currentFollower: Player | undefined; 
-        // let oldestLocation: UserLocation | undefined; 
-
+   
         currentLocation = location;
         if (now - lastMovement > MOVEMENT_UPDATE_DELAY_MS || !location.moving) {
           lastMovement = now;
@@ -183,28 +184,6 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
             now - lastRecalculateNearbyPlayers > CALCULATE_NEARBY_PLAYERS_MOVING_DELAY_MS ||
             !location.moving
           ) {
-            // console.log("Updating player!"); 
-            // const player = localPlayers.find(p => p.id === gamePlayerID);
-            // if (player !== undefined) {
-            //   currentFollower = player.follower; 
-            //   oldestLocation = player.previousSteps.shift(); 
-            //   player.previousSteps = player.previousSteps.splice(-10); 
-            //   while (currentFollower !== undefined) {
-            //     console.log(currentFollower); 
-            //     console.log("Updating follower: "); 
-            //     if (currentFollower.location !== undefined) {
-            //       currentFollower.previousSteps.push(currentFollower.location); 
-            //       currentFollower.location = oldestLocation; 
-
-            //       currentFollower.previousSteps = currentFollower.previousSteps.splice(-10); 
-            //       oldestLocation = currentFollower.previousSteps.shift(); 
-            //       currentFollower = currentFollower.follower; 
-
-            //     } else {
-            //       break; 
-            //     }
-            //   }
-            // }
             lastRecalculateNearbyPlayers = now;
             recalculateNearbyPlayers();
           }
@@ -231,29 +210,68 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           parentPlayer.follower = clientSideFollower; 
         }
       }); 
-      socket.on('playerMoved', (players: ServerPlayer[]) => {
+      socket.on('playerMoved', (players: ServerPlayer[]) => {        
+        const map = new Map<string, number>(); 
+
+        for (let idx = 0; idx < localPlayers.length; idx += 1) {
+          map.set(localPlayers[idx].id, idx); 
+        }
+        
+        const playersToUpdate: ServerPlayer[] = []; 
 
         for (let idx = 0; idx < players.length; idx += 1) {
           const player = players[idx]; 
           if (player._id !== gamePlayerID) {
             const now = Date.now();
-            playerMovementCallbacks.forEach(cb => cb(player));
+            playersToUpdate.push(player); 
+            // playerMovementCallbacks.forEach(cb => cb([player]));
             if (
               !player.location.moving ||
               now - lastRecalculateNearbyPlayers > CALCULATE_NEARBY_PLAYERS_MOVING_DELAY_MS
             ) {
               lastRecalculateNearbyPlayers = now;
-              const updatePlayer = localPlayers.find(p => p.id === player._id);
-              if (updatePlayer) {
-                updatePlayer.location = player.location;
-              } else {
-                localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
-                setPlayersInTown(localPlayers);
+              const listIndex = map.get(player._id); 
+              if (listIndex !== undefined ) {
+                const updatePlayer = localPlayers[listIndex]; 
+                if (updatePlayer) {
+                  updatePlayer.location = player.location;
+                  
+                } else {
+                  console.log("Concatting new player"); 
+                  localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
+                  setPlayersInTown(localPlayers);
+                }
               }
-              recalculateNearbyPlayers();
             }
           }
         }
+        if (playersToUpdate.length > 0) {
+          playerMovementCallbacks.forEach(cb => cb(playersToUpdate));
+        }
+
+        // for (let idx = 0; idx < players.length; idx += 1) {
+        //   const player = players[idx]; 
+        //   if (player._id !== gamePlayerID) {
+        //     const now = Date.now();
+        //     playerMovementCallbacks.forEach(cb => cb(player));
+        //     if (
+        //       !player.location.moving ||
+        //       now - lastRecalculateNearbyPlayers > CALCULATE_NEARBY_PLAYERS_MOVING_DELAY_MS
+        //     ) {
+        //       lastRecalculateNearbyPlayers = now;
+        //       const updatePlayer = localPlayers.find(p => p.id === player._id);
+        //       if (updatePlayer) {
+        //         updatePlayer.location = player.location;
+                
+        //       } else {
+        //         localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
+        //         setPlayersInTown(localPlayers);
+        //       }
+        //     }
+        //   }
+        // }
+        // recalculateNearbyPlayers();
+
       
       });
       socket.on('playerDisconnect', (disconnectedPlayer: ServerPlayer) => {
