@@ -363,8 +363,29 @@ export default class CoveyTownController {
     this._listeners.forEach(listener => listener.onTownDestroyed());
   }
 
-  //Function to initalize the 4 pet areas will add funcitonality when exact positions are determined
-  addPetAreas(): void {
-
+  //Function to add new petAreas to the town
+  addPetAreas(_petArea: ServerConversationArea): boolean {
+    if (_petArea.topic === '') {
+      return false;
+    }
+    if (
+      this._petAreas.find(eachPetA =>
+        CoveyTownController.boxesOverlap(
+          eachPetA.boundingBox,
+          _petArea.boundingBox,
+        ),
+      ) !== undefined
+    ) {
+      return false;
+    }
   }
+    this._conversationAreas.push(_petArea);
+    const playersInThisPet = this.players.filter(player => player.isWithin(_petArea));
+    playersInThisPet.forEach(player => {
+      player.activeConversationArea = _petArea;
+    });
+    _petArea.occupantsByID = playersInThisPet.map(player => player.id);
+    this._listeners.forEach(listener => listener.onConversationAreaUpdated(_petArea));
+    return true;
+}
 }
