@@ -379,7 +379,7 @@ export default class CoveyTownController {
       return false;
     }
   }
-    this._conversationAreas.push(_petArea);
+    this._petAreas.push(_petArea);
     const playersInThisPet = this.players.filter(player => player.isWithin(_petArea));
     playersInThisPet.forEach(player => {
       player.activeConversationArea = _petArea;
