@@ -201,12 +201,14 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
       socket.on('newFollower', (playerID: string, newFollower: ServerPlayer) => {
         let parentPlayer = localPlayers.find(p => p.id === playerID); 
         if (parentPlayer) {
-          const clientSideFollower = Player.fromServerPlayer(newFollower)
+          const clientSideFollower:Player = Player.fromServerPlayer(newFollower)
+          
           localPlayers = localPlayers.concat(clientSideFollower); 
           recalculateNearbyPlayers(); 
           while (parentPlayer.follower !== undefined) {
             parentPlayer = parentPlayer.follower; 
           }
+          
           parentPlayer.follower = clientSideFollower; 
         }
       }); 
@@ -237,7 +239,6 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
                   updatePlayer.location = player.location;
                   
                 } else {
-                  console.log("Concatting new player"); 
                   localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
                   setPlayersInTown(localPlayers);
                 }
@@ -246,33 +247,9 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           }
         }
         if (playersToUpdate.length > 0) {
+          
           playerMovementCallbacks.forEach(cb => cb(playersToUpdate));
         }
-
-        // for (let idx = 0; idx < players.length; idx += 1) {
-        //   const player = players[idx]; 
-        //   if (player._id !== gamePlayerID) {
-        //     const now = Date.now();
-        //     playerMovementCallbacks.forEach(cb => cb(player));
-        //     if (
-        //       !player.location.moving ||
-        //       now - lastRecalculateNearbyPlayers > CALCULATE_NEARBY_PLAYERS_MOVING_DELAY_MS
-        //     ) {
-        //       lastRecalculateNearbyPlayers = now;
-        //       const updatePlayer = localPlayers.find(p => p.id === player._id);
-        //       if (updatePlayer) {
-        //         updatePlayer.location = player.location;
-                
-        //       } else {
-        //         localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
-        //         setPlayersInTown(localPlayers);
-        //       }
-        //     }
-        //   }
-        // }
-        // recalculateNearbyPlayers();
-
-      
       });
       socket.on('playerDisconnect', (disconnectedPlayer: ServerPlayer) => {
         localPlayers = localPlayers.filter(player => player.id !== disconnectedPlayer._id);

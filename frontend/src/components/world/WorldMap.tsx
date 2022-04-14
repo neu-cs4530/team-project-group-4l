@@ -95,7 +95,7 @@ class CoveyGameScene extends Phaser.Scene {
     this.load.image('16_Grocery_store_32x32', '/assets/tilesets/16_Grocery_store_32x32.png');
     this.load.tilemapTiledJSON('map', '/assets/tilemaps/indoors.json');
     this.load.atlas('atlas', '/assets/atlas/atlas.png', '/assets/atlas/atlas.json');
-    // this.load.atlas('atlas', '/assets/dogs/dog1/dog1.png', '/assets/dogs/dog1/dog1.json'); 
+    this.load.atlas('dog1', '/assets/dogs/dog1/dog1.png', '/assets/dogs/dog1/dog1.json'); 
   }
 
   /**
@@ -184,7 +184,7 @@ class CoveyGameScene extends Phaser.Scene {
           y: 0,
         };
       }
-      myPlayer = new Player(player.id, player.userName, location);
+      myPlayer = new Player(player.id, player.userName, location, player.spriteType);
       this.players.push(myPlayer);
     }
 
@@ -195,7 +195,8 @@ class CoveyGameScene extends Phaser.Scene {
         sprite = this.physics.add
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore - JB todo
-          .sprite(0, 0, 'atlas', 'misa-front')
+          
+          .sprite(0, 0, myPlayer.spriteType, 'misa-front')
           .setSize(30, 40)
           .setOffset(0, 24);
         const label = this.add.text(0, 0, myPlayer.userName, {
@@ -211,12 +212,13 @@ class CoveyGameScene extends Phaser.Scene {
       sprite.setY(player.location.y);
       myPlayer.label?.setX(player.location.x);
       
-      myPlayer.label?.setY(player.location.y - 20);
+
+      myPlayer.label?.setY(player.location.y - 40);
       if (player.location.moving) {
-        sprite.anims.play(`misa-${player.location.rotation}-walk`, true);
+        sprite.anims.play(`${player.spriteType}-misa-${player.location.rotation}-walk`, true);
       } else {
         sprite.anims.stop();
-        sprite.setTexture('atlas', `misa-${player.location.rotation}`);
+        sprite.setTexture(player.spriteType, `misa-${player.location.rotation}`);
       }
     }
   }
@@ -266,24 +268,25 @@ class CoveyGameScene extends Phaser.Scene {
       switch (primaryDirection) {
         case 'left':
           body.setVelocityX(-speed);
-          this.player.sprite.anims.play('misa-left-walk', true);
+          this.player.sprite.anims.play('atlas-misa-left-walk', true);
           break;
         case 'right':
           body.setVelocityX(speed);
-          this.player.sprite.anims.play('misa-right-walk', true);
+          this.player.sprite.anims.play('atlas-misa-right-walk', true);
           break;
         case 'front':
           body.setVelocityY(speed);
-          this.player.sprite.anims.play('misa-front-walk', true);
+          this.player.sprite.anims.play('atlas-misa-front-walk', true);
           break;
         case 'back':
           body.setVelocityY(-speed);
-          this.player.sprite.anims.play('misa-back-walk', true);
+          this.player.sprite.anims.play('atlas-misa-back-walk', true);
           break;
         default:
           // Not moving
           this.player.sprite.anims.stop();
           // If we were moving, pick and idle frame to use
+          // The update here will always be the same player skin so dont need to specify skinType 
           if (prevVelocity.x < 0) {
             this.player.sprite.setTexture('atlas', 'misa-left');
           } else if (prevVelocity.x > 0) {
@@ -579,50 +582,55 @@ class CoveyGameScene extends Phaser.Scene {
     // Create the player's walking animations from the texture atlas. These are stored in the global
     // animation manager so any sprite can access them.
     const { anims } = this;
-    anims.create({
-      key: 'misa-left-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-left-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    anims.create({
-      key: 'misa-right-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-right-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    anims.create({
-      key: 'misa-front-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-front-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    anims.create({
-      key: 'misa-back-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-back-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
+
+    const animTypes = ['atlas','dog1']; 
+
+    for( let idx = 0; idx < animTypes.length; idx += 1) {
+      anims.create({
+        key: `${animTypes[idx]}-misa-left-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-left-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+      anims.create({
+        key: `${animTypes[idx]}-misa-right-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-right-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+      anims.create({
+        key: `${animTypes[idx]}-misa-front-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-front-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+      anims.create({
+        key: `${animTypes[idx]}-misa-back-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-back-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+    }
 
     const camera = this.cameras.main;
     camera.startFollow(this.player.sprite);
