@@ -306,8 +306,6 @@ export function townSubscriptionHandler(socket: Socket): void {
   });
 
   socket.on('spawnFollower', (playerID: string) => {
-    console.log("Player id: "); 
-    console.log(playerID); 
     townController.addFollower(s.player, playerID);
   });
 }

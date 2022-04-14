@@ -141,6 +141,7 @@ export default class CoveyTownController {
         player.activeConversationArea.occupantsByID.push(follower.id);
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
       }
+      follower.spriteType = 'dog1'; 
       this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }
 
@@ -164,14 +165,32 @@ export default class CoveyTownController {
     }
 
     // Destroy all followers that were following this player.
-    const { follower } = player;
-    while (follower !== undefined) {
-      this._players = this._players.filter(p => p.id !== follower.id);
-      this._listeners.forEach(listener => listener.onPlayerDisconnected(follower));
-      if (follower.activeConversationArea !== undefined) {
-        this.removePlayerFromConversationArea(follower, follower.activeConversationArea);
+    if (player.follower) {
+      let follower = player.follower; 
+      while(follower) {
+        this._players = this._players.filter(p => p.id !== follower.id);
+        this._listeners.forEach(listener => listener.onPlayerDisconnected(follower));
+        if (follower.activeConversationArea !== undefined) {
+          this.removePlayerFromConversationArea(follower, follower.activeConversationArea);
+        }
+        if (follower.follower) {
+          follower = follower.follower; 
+        } else {
+          break; 
+        }
       }
     }
+
+    // let follower = player.follower; 
+    // while (follower !== undefined) {
+    //   this._players = this._players.filter(p => p.id !== follower?.id);
+    //   this._listeners.forEach(listener => listener.onPlayerDisconnected(follower));
+    //   if (follower.activeConversationArea !== undefined) {
+    //     this.removePlayerFromConversationArea(follower, follower.activeConversationArea);
+    //   }
+    
+    //   // follower = follower.follower; 
+    // }
   }
 
   /**

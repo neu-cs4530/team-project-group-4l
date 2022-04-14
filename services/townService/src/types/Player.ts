@@ -14,8 +14,8 @@ export default class Player {
 
   public previousSteps: UserLocation[] = []; 
 
-  public moduloSteps: number = 0; 
 
+  public spriteType = 'atlas'; 
   /** The unique identifier for this player * */
   private readonly _id: string;
 
