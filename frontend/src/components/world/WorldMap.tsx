@@ -734,7 +734,7 @@ export default function WorldMap(): JSX.Element {
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement, setNewConversation, myPlayerID]);
+  }, [video, emitMovement, setNewConversation, myPlayerID, spawnFollower]);
 
   useEffect(() => {
     const movementDispatcher = (updatedPlayers: ServerPlayer[]) => {

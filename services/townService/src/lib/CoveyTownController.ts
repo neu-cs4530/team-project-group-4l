@@ -115,17 +115,16 @@ export default class CoveyTownController {
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
    * @param player The Player we are adding this follower to.
-   * @param playerID: The Player ID belonging to this player 
+   * @param playerID: The Player ID belonging to this player
    */
   addFollower(player: Player, playerID: string): void {
-  
     const follower: Player = new Player('Pet');
-    
-    let currentDepth = 0; 
+
+    let currentDepth = 0;
 
     while (player.follower !== undefined) {
       player = player.follower;
-      currentDepth += 1; 
+      currentDepth += 1;
     }
 
     if (currentDepth <= 6) {
@@ -141,13 +140,11 @@ export default class CoveyTownController {
         player.activeConversationArea.occupantsByID.push(follower.id);
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
       }
-      follower.spriteType = 'dog1'; 
+      follower.spriteType = 'dog1';
       this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }
+  }
 
-    }
-
-    
   /**
    * Destroys all data related to a player in this town.
    *
@@ -166,31 +163,22 @@ export default class CoveyTownController {
 
     // Destroy all followers that were following this player.
     if (player.follower) {
-      let follower = player.follower; 
-      while(follower) {
-        this._players = this._players.filter(p => p.id !== follower.id);
-        this._listeners.forEach(listener => listener.onPlayerDisconnected(follower));
+      let { follower } = player;
+      while (follower) {
+        const currentId = follower.id;
+        const followerToRemove = follower;
+        this._players = this._players.filter(p => p.id !== currentId);
+        this._listeners.forEach(listener => listener.onPlayerDisconnected(followerToRemove));
         if (follower.activeConversationArea !== undefined) {
           this.removePlayerFromConversationArea(follower, follower.activeConversationArea);
         }
         if (follower.follower) {
-          follower = follower.follower; 
+          follower = follower.follower;
         } else {
-          break; 
+          break;
         }
       }
     }
-
-    // let follower = player.follower; 
-    // while (follower !== undefined) {
-    //   this._players = this._players.filter(p => p.id !== follower?.id);
-    //   this._listeners.forEach(listener => listener.onPlayerDisconnected(follower));
-    //   if (follower.activeConversationArea !== undefined) {
-    //     this.removePlayerFromConversationArea(follower, follower.activeConversationArea);
-    //   }
-    
-    //   // follower = follower.follower; 
-    // }
   }
 
   /**
@@ -204,30 +192,32 @@ export default class CoveyTownController {
    * @param location New location for this player
    */
   updatePlayerLocation(player: Player, location: UserLocation): void {
-    const updated_players = this.updatePlayerLocationHelper(player, location, location['moving']);
-
-    this._listeners.forEach(listener => listener.onPlayerMoved(updated_players));
-    
+    const updatedPlayers = this.updatePlayerLocationHelper(player, location, location.moving);
+    this._listeners.forEach(listener => listener.onPlayerMoved(updatedPlayers));
   }
 
   /**
-   * Helper for update player location where we do almost the same 
-   * logic but for followers. The main difference is that we do not 
-   * send onPlayerMoved updates as the main player will be sending that 
-   * and the controller will then grab all those that have changed. 
-   * @param player The Player we are updating this for 
-   * @param location The location the player has moved to 
+   * Helper for update player location where we do almost the same
+   * logic but for followers. The main difference is that we do not
+   * send onPlayerMoved updates as the main player will be sending that
+   * and the controller will then grab all those that have changed.
+   * @param player The Player we are updating this for
+   * @param location The location the player has moved to
    */
-  private updatePlayerLocationHelper(player: Player, location: UserLocation, playerMoving:boolean): Player[] {
-    location['moving'] = playerMoving; 
+  private updatePlayerLocationHelper(
+    player: Player,
+    location: UserLocation,
+    playerMoving: boolean,
+  ): Player[] {
+    location.moving = playerMoving;
 
     const conversation = this.conversationAreas.find(
       conv => conv.label === location.conversationLabel,
     );
     const prevConversation = player.activeConversationArea;
-    
+
     // const prevLocation = player.location;
-    player.previousSteps.push(player.location); 
+    player.previousSteps.push(player.location);
     player.location = location;
     player.activeConversationArea = conversation;
 
@@ -239,22 +229,26 @@ export default class CoveyTownController {
         conversation.occupantsByID.push(player.id);
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(conversation));
       }
-    } 
-    player.previousSteps = player.previousSteps.splice(-10); 
+    }
+    player.previousSteps = player.previousSteps.splice(-10);
 
     if (player.follower !== undefined) {
-      // player.previousSteps = player.previousSteps.splice(-10); 
-      const oldestLocation = player.previousSteps.shift(); 
+      // player.previousSteps = player.previousSteps.splice(-10);
+      const oldestLocation = player.previousSteps.shift();
 
       if (oldestLocation !== undefined) {
-        const updated_players = this.updatePlayerLocationHelper(player.follower, oldestLocation, playerMoving);
-        updated_players.push(player);
-        return updated_players; 
+        const updatedPlayers = this.updatePlayerLocationHelper(
+          player.follower,
+          oldestLocation,
+          playerMoving,
+        );
+        updatedPlayers.push(player);
+        return updatedPlayers;
       }
     } else {
-      return [player]; 
+      return [player];
     }
-    return []; 
+    return [];
   }
 
   /**

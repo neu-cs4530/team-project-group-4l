@@ -213,6 +213,8 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         }
       }); 
       socket.on('playerMoved', (players: ServerPlayer[]) => {        
+        // eslint-disable-next-line no-console
+        console.log("Updating Player"); 
         const map = new Map<string, number>(); 
 
         for (let idx = 0; idx < localPlayers.length; idx += 1) {

@@ -1,7 +1,7 @@
-import Player from './Player';
+import { mockDeep } from 'jest-mock-extended';
 import CoveyTownController from '../lib/CoveyTownController';
 import TwilioVideo from '../lib/TwilioVideo';
-import { mock, mockDeep, mockReset } from 'jest-mock-extended';
+import Player from './Player';
 
 const mockTwilioVideo = mockDeep<TwilioVideo>();
 jest.spyOn(TwilioVideo, 'getInstance').mockReturnValue(mockTwilioVideo);
@@ -19,7 +19,7 @@ describe('Follower', () => {
   });
 
   describe('adding a follower', () => {
-    it('player\s follower field should reflect its follower', () => {
+    it('players follower field should reflect its follower', () => {
       const player = new Player('test player');
       const pet = new Player('test pet');
       player.follower = pet;
@@ -29,7 +29,7 @@ describe('Follower', () => {
       const player = new Player('test player');
       testingTown.addPlayer(player);
       expect(player.follower).toBe(undefined);
-      testingTown.addFollower(player);
+      testingTown.addFollower(player, player.id);
       expect(player.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(2);
     });
@@ -37,17 +37,17 @@ describe('Follower', () => {
       const player = new Player('test player');
       testingTown.addPlayer(player);
       expect(player.follower).toBe(undefined);
-      testingTown.addFollower(player);
+      testingTown.addFollower(player, player.id);
       expect(player.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(2);
 
-      testingTown.addFollower(player);
+      testingTown.addFollower(player, player.id);
       expect(player.follower?.userName).toBe('Pet');
       const firstPet = player.follower;
       expect(firstPet?.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(3);
 
-      testingTown.addFollower(player);
+      testingTown.addFollower(player, player.id);
       const secondPet = firstPet?.follower;
       expect(secondPet?.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(4);
@@ -57,11 +57,11 @@ describe('Follower', () => {
       const player2 = new Player('second test player');
       testingTown.addPlayer(player1);
       testingTown.addPlayer(player2);
-      testingTown.addFollower(player1);
+      testingTown.addFollower(player1, player1.id);
       expect(player1.follower?.userName).toBe('Pet');
       expect(player2.follower).toBe(undefined);
 
-      testingTown.addFollower(player2);
+      testingTown.addFollower(player2, player2.id);
       expect(player2.follower?.userName).toBe('Pet');
     });
   });
@@ -77,5 +77,4 @@ describe('Follower', () => {
       expect(player.follower).toBe(undefined);
     });
   });
-
 });
