@@ -95,6 +95,7 @@ class CoveyGameScene extends Phaser.Scene {
     this.load.image('16_Grocery_store_32x32', '/assets/tilesets/16_Grocery_store_32x32.png');
     this.load.tilemapTiledJSON('map', '/assets/tilemaps/indoors.json');
     this.load.atlas('atlas', '/assets/atlas/atlas.png', '/assets/atlas/atlas.json');
+    // this.load.atlas('atlas', '/assets/dogs/dog1/dog1.png', '/assets/dogs/dog1/dog1.json'); 
   }
 
   /**
@@ -187,21 +188,7 @@ class CoveyGameScene extends Phaser.Scene {
       this.players.push(myPlayer);
     }
 
-    // myPlayer.previousSteps.push(myPlayer)
-    // if (myPlayer.follower) {
-    //   const currentFollower = myPlayer.follower; 
-    //   const oldestLocation = myPlayer.previousSteps.shift(); 
-
-    //   while(currentFollower) {
-    //     if (oldestLocation && currentFollower.location) {
-    //       currentFollower.previousSteps.push(oldestLocation); 
-    //       currentFollower.previousSteps = currentFollower.previousSteps.splice(-10); 
-          
-         
-    //     }
-    //   }
-    // }
-
+  
     if (this.myPlayerID !== myPlayer.id && this.physics && player.location) {
       let { sprite } = myPlayer;
       if (!sprite) {
@@ -223,6 +210,7 @@ class CoveyGameScene extends Phaser.Scene {
       sprite.setX(player.location.x);
       sprite.setY(player.location.y);
       myPlayer.label?.setX(player.location.x);
+      
       myPlayer.label?.setY(player.location.y - 20);
       if (player.location.moving) {
         sprite.anims.play(`misa-${player.location.rotation}-walk`, true);
@@ -312,7 +300,7 @@ class CoveyGameScene extends Phaser.Scene {
 
       const isMoving = primaryDirection !== undefined;
       this.player.label.setX(body.x);
-      this.player.label.setY(body.y - 20);
+      this.player.label.setY(body.y - 40);
       if (
         !this.lastLocation ||
         this.lastLocation.x !== body.x ||

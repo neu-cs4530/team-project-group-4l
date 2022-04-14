@@ -13,6 +13,8 @@ export default class Player {
 
   public previousSteps: UserLocation[] = []; 
 
+  public spriteType = "atlas"; 
+
   constructor(id: string, userName: string, location: UserLocation) {
     this._id = id;
     this._userName = userName;
