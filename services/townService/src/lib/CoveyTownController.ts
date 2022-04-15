@@ -144,7 +144,6 @@ export default class CoveyTownController {
       const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
 
       follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
-      // follower.spriteType = 'dog-grey';
 
       this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }

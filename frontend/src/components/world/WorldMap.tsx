@@ -99,8 +99,6 @@ class CoveyGameScene extends Phaser.Scene {
     this.load.atlas('dog-black', '/assets/dogs/dog-black.png', '/assets/dogs/dog-black.json'); 
     this.load.atlas('dog-grey', '/assets/dogs/dog-grey.png', '/assets/dogs/dog-grey.json'); 
 
-    // this.load.atlas('dog1', '/assets/dogs/dog1/dog1.png', '/assets/dogs/dog1/dog1.json'); 
-
   }
 
   /**
