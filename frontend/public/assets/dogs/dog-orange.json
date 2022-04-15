@@ -163,7 +163,7 @@
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.0",
-	"image": "dog1.png",
+	"image": "dog-orange.png",
 	"format": "RGBA8888",
 	"size": {"w":418,"h":112},
 	"scale": "0.25",

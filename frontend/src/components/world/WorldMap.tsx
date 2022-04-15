@@ -95,7 +95,12 @@ class CoveyGameScene extends Phaser.Scene {
     this.load.image('16_Grocery_store_32x32', '/assets/tilesets/16_Grocery_store_32x32.png');
     this.load.tilemapTiledJSON('map', '/assets/tilemaps/indoors.json');
     this.load.atlas('atlas', '/assets/atlas/atlas.png', '/assets/atlas/atlas.json');
-    this.load.atlas('dog1', '/assets/dogs/dog1/dog1.png', '/assets/dogs/dog1/dog1.json'); 
+    this.load.atlas('dog-orange', '/assets/dogs/dog-orange.png', '/assets/dogs/dog-orange.json'); 
+    this.load.atlas('dog-black', '/assets/dogs/dog-black.png', '/assets/dogs/dog-black.json'); 
+    this.load.atlas('dog-grey', '/assets/dogs/dog-grey.png', '/assets/dogs/dog-grey.json'); 
+
+    // this.load.atlas('dog1', '/assets/dogs/dog1/dog1.png', '/assets/dogs/dog1/dog1.json'); 
+
   }
 
   /**
@@ -583,7 +588,7 @@ class CoveyGameScene extends Phaser.Scene {
     // animation manager so any sprite can access them.
     const { anims } = this;
 
-    const animTypes = ['atlas','dog1']; 
+    const animTypes = ['atlas','dog-orange', 'dog-black', 'dog-grey']; 
 
     for( let idx = 0; idx < animTypes.length; idx += 1) {
       anims.create({
