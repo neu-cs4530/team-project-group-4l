@@ -122,14 +122,19 @@ export default class CoveyTownController {
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
    * @param player The Player we are adding this follower to.
+   * @param playerID: The Player ID belonging to this player
    */
-  addFollower(player: Player): void {
-    if (inPetArea(player)) {
-      const follower: Player = new Player('Pet');
+  addFollower(player: Player, playerID: string): void {
+    const follower: Player = new Player('Pet');
 
-      while (player.follower !== undefined) {
-        player = player.follower;
-      }
+    let currentDepth = 0;
+
+    while (player.follower !== undefined) {
+      player = player.follower;
+      currentDepth += 1;
+    }
+
+    if (currentDepth <= 6) {
       player.follower = follower;
       follower.location = player.location;
       follower.activeConversationArea = player.activeConversationArea;
@@ -142,10 +147,15 @@ export default class CoveyTownController {
         player.activeConversationArea.occupantsByID.push(follower.id);
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
       }
-      this._listeners.forEach(listener => listener.onPlayerJoined(follower));
+
+      const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
+
+      follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+
+      this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }
   }
-
+  
   /**
    * Checks whether or not a player is within any PetAreas
    * @param player The Player to determine the location of.
