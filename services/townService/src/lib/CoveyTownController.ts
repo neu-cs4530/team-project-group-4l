@@ -140,7 +140,11 @@ export default class CoveyTownController {
         player.activeConversationArea.occupantsByID.push(follower.id);
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
       }
-      follower.spriteType = 'dog1';
+
+      const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
+
+      follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+
       this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }
   }
