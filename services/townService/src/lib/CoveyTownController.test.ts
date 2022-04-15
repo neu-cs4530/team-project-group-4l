@@ -336,4 +336,10 @@ describe('CoveyTownController', () => {
       expect(mockListener.onConversationAreaUpdated).toHaveBeenCalledTimes(1);
     });
   });
+  describe('addFollower', () => {
+    it('should do something',
+      async () => {
+
+      });
+  });
 });

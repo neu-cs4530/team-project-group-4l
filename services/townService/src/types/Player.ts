@@ -76,4 +76,21 @@ export default class Player {
       this.location.y < conversation.boundingBox.y + conversation.boundingBox.height / 2
     );
   }
+
+  /**
+   * Checks to see if a player's location is within the specified pet area
+   *
+   * This method is resilient to floating point errors that could arise if any of the coordinates of
+   * `this.location` are dramatically smaller than those of the pet area's bounding box.
+   * @param petArea
+   * @returns whether the Player is within the given Pet Area.
+   */
+  isWithinPetArea(petArea: ServerPetArea): boolean {
+    return (
+      this.location.x > petArea.boundingBox.x - petArea.boundingBox.width / 2 &&
+      this.location.x < petArea.boundingBox.x + petArea.boundingBox.width / 2 &&
+      this.location.y > petArea.boundingBox.y - petArea.boundingBox.height / 2 &&
+      this.location.y < petArea.boundingBox.y + petArea.boundingBox.height / 2
+    );
+  }
 }
