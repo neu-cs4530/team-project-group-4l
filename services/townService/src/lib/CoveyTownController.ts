@@ -117,7 +117,7 @@ export default class CoveyTownController {
    * @param player The Player we are adding this follower to.
    * @param playerID: The Player ID belonging to this player
    */
-  addFollower(player: Player, playerID: string): void {
+  addFollower(player: Player): void {
     const follower: Player = new Player('Pet');
 
     let currentDepth = 0;
@@ -145,7 +145,7 @@ export default class CoveyTownController {
 
       follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
 
-      this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
+      // this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }
   }
 

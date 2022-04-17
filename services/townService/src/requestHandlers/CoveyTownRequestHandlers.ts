@@ -302,7 +302,7 @@ export function townSubscriptionHandler(socket: Socket): void {
     townController.updatePlayerLocation(s.player, movementData);
   });
 
-  socket.on('spawnFollower', (playerID: string) => {
-    townController.addFollower(s.player, playerID);
+  socket.on('spawnFollower', () => {
+    townController.addFollower(s.player);
   });
 }

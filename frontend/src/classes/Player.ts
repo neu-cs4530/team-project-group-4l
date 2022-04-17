@@ -9,8 +9,7 @@ export default class Player {
 
   public label?: Phaser.GameObjects.Text;
 
-  public follower?: Player; 
-
+  // The type of sprite image related to this Player. Can be of the default player sprite, or any pet object that may be loaded. 
   public spriteType = "atlas"; 
 
   constructor(id: string, userName: string, location: UserLocation, spriteType:string) {
