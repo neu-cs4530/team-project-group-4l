@@ -1,5 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
+import { BoundingBox, ServerConversationArea, ServerPetArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
@@ -54,6 +54,10 @@ export default class CoveyTownController {
     return this._conversationAreas;
   }
 
+  get petAreas(): ServerPetArea[] {
+    return this._petAreas;
+  }
+
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
@@ -68,6 +72,9 @@ export default class CoveyTownController {
 
   /** The list of currently active ConversationAreas in this town */
   private _conversationAreas: ServerConversationArea[] = [];
+
+  /** The list of PetAreas in this town */
+  private _petAreas: ServerPetArea[] = [];
 
   private readonly _coveyTownID: string;
 
@@ -117,34 +124,50 @@ export default class CoveyTownController {
    * @param player The Player we are adding this follower to.
    * @param playerID: The Player ID belonging to this player
    */
-  addFollower(player: Player): void {
-    const follower: Player = new Player('Pet');
 
-    let currentDepth = 0;
+  addFollower(player: Player, playerID: string): void {
+    if (this.inPetArea(player)) {
+      const follower: Player = new Player('Pet');
+      let currentDepth = 0;
 
-    while (player.follower !== undefined) {
-      player = player.follower;
-      currentDepth += 1;
-    }
-
-    if (currentDepth <= 6) {
-      player.follower = follower;
-      follower.location = player.location;
-      follower.activeConversationArea = player.activeConversationArea;
-
-      this._players.push(follower);
-
-      // If this player has an active conversation, notify the area that a player has just joined this area.
-      if (player.activeConversationArea !== undefined) {
-        const convArea: ServerConversationArea = player.activeConversationArea;
-        player.activeConversationArea.occupantsByID.push(follower.id);
-        this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
+      while (player.follower !== undefined) {
+        player = player.follower;
+        currentDepth += 1;
       }
 
-      const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
+      if (currentDepth <= 6) {
+        player.follower = follower;
+        follower.location = player.location;
+        follower.activeConversationArea = player.activeConversationArea;
+
+        this._players.push(follower);
+
+        // If this player has an active conversation, notify the area that a player has just joined this area.
+        if (player.activeConversationArea !== undefined) {
+          const convArea: ServerConversationArea = player.activeConversationArea;
+          player.activeConversationArea.occupantsByID.push(follower.id);
+          this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
+        }
+
+        const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
 
       follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+
     }
+  }
+
+  /**
+   * Checks whether or not a player is within any PetAreas
+   * @param player The Player to determine the location of.
+   */
+  inPetArea(player: Player): boolean {
+    let withinArea: boolean = false;
+    this.petAreas.forEach((area) => {
+      if (player.isWithinPetArea(area)) {
+        withinArea = true;
+      }
+    });
+    return withinArea;
   }
 
   /**
@@ -321,6 +344,12 @@ export default class CoveyTownController {
     });
     newArea.occupantsByID = playersInThisConversation.map(player => player.id);
     this._listeners.forEach(listener => listener.onConversationAreaUpdated(newArea));
+    return true;
+  }
+
+  addPetArea(_petArea: ServerPetArea): boolean {
+    const newArea: ServerPetArea = Object.assign(_petArea);
+    this._petAreas.push(newArea);
     return true;
   }
 

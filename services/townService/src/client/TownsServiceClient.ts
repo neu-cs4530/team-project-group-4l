@@ -7,7 +7,7 @@ export type ServerPlayer = { _id: string, _userName: string, location: UserLocat
 
 /**
  * A bounding box, with a coordinate system that matches the frontend game engine's coordinates
- * The x,y position specifies the center of the box (NOT a corner). 
+ * The x,y position specifies the center of the box (NOT a corner).
  */
 export type BoundingBox = {
   x: number,
@@ -18,6 +18,11 @@ export type BoundingBox = {
 export type ServerConversationArea = {
   label: string;
   topic: string;
+  occupantsByID: string[];
+  boundingBox: BoundingBox;
+};
+export type ServerPetArea = {
+  label: string;
   occupantsByID: string[];
   boundingBox: BoundingBox;
 };
@@ -53,6 +58,8 @@ export interface TownJoinResponse {
   isPubliclyListed: boolean;
   /** Conversation areas */
   conversationAreas: ServerConversationArea[];
+  /** Pet areas */
+  petAreas: ServerPetAreas[];
 }
 
 /**
