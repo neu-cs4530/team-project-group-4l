@@ -51,7 +51,11 @@ class CoveyGameScene extends Phaser.Scene {
 
   private video: Video;
 
+  private spawnFollowerDebouncerCount = 0; 
+
   private emitMovement: (loc: UserLocation) => void;
+
+  private spawnFollower: (playerID: string) => void; 
 
   private currentConversationArea?: ConversationGameObjects;
 
@@ -66,12 +70,14 @@ class CoveyGameScene extends Phaser.Scene {
     emitMovement: (loc: UserLocation) => void,
     setNewConversation: (conv: ConversationArea) => void,
     myPlayerID: string,
+    spawnFollower: (playerID: string) => void, 
   ) {
     super('PlayGame');
     this.video = video;
     this.emitMovement = emitMovement;
     this.myPlayerID = myPlayerID;
     this.setNewConversation = setNewConversation;
+    this.spawnFollower = spawnFollower; 
   }
 
   preload() {
@@ -89,6 +95,10 @@ class CoveyGameScene extends Phaser.Scene {
     this.load.image('16_Grocery_store_32x32', '/assets/tilesets/16_Grocery_store_32x32.png');
     this.load.tilemapTiledJSON('map', '/assets/tilemaps/indoors.json');
     this.load.atlas('atlas', '/assets/atlas/atlas.png', '/assets/atlas/atlas.json');
+    this.load.atlas('dog-orange', '/assets/dogs/dog-orange.png', '/assets/dogs/dog-orange.json'); 
+    this.load.atlas('dog-black', '/assets/dogs/dog-black.png', '/assets/dogs/dog-black.json'); 
+    this.load.atlas('dog-grey', '/assets/dogs/dog-grey.png', '/assets/dogs/dog-grey.json'); 
+
   }
 
   /**
@@ -177,16 +187,19 @@ class CoveyGameScene extends Phaser.Scene {
           y: 0,
         };
       }
-      myPlayer = new Player(player.id, player.userName, location);
+      myPlayer = new Player(player.id, player.userName, location, player.spriteType);
       this.players.push(myPlayer);
     }
+
+  
     if (this.myPlayerID !== myPlayer.id && this.physics && player.location) {
       let { sprite } = myPlayer;
       if (!sprite) {
         sprite = this.physics.add
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore - JB todo
-          .sprite(0, 0, 'atlas', 'misa-front')
+          
+          .sprite(0, 0, myPlayer.spriteType, 'misa-front')
           .setSize(30, 40)
           .setOffset(0, 24);
         const label = this.add.text(0, 0, myPlayer.userName, {
@@ -201,12 +214,14 @@ class CoveyGameScene extends Phaser.Scene {
       sprite.setX(player.location.x);
       sprite.setY(player.location.y);
       myPlayer.label?.setX(player.location.x);
-      myPlayer.label?.setY(player.location.y - 20);
+      
+
+      myPlayer.label?.setY(player.location.y - 40);
       if (player.location.moving) {
-        sprite.anims.play(`misa-${player.location.rotation}-walk`, true);
+        sprite.anims.play(`${player.spriteType}-misa-${player.location.rotation}-walk`, true);
       } else {
         sprite.anims.stop();
-        sprite.setTexture('atlas', `misa-${player.location.rotation}`);
+        sprite.setTexture(player.spriteType, `misa-${player.location.rotation}`);
       }
     }
   }
@@ -227,13 +242,25 @@ class CoveyGameScene extends Phaser.Scene {
     return undefined;
   }
 
+  requestToSpawnFollower() {
+    if (this.cursors.find(keySet => keySet.space?.isDown)) {
+      if (this.spawnFollowerDebouncerCount === 0) {
+        this.spawnFollowerDebouncerCount = 10; 
+        return true; 
+      }
+      this.spawnFollowerDebouncerCount -= 1; 
+      return false; 
+    } 
+    return false; 
+  }
+
   update() {
     if (this.paused) {
       return;
     }
     if (this.player && this.cursors) {
       const speed = 175;
-
+      
       const prevVelocity = this.player.sprite.body.velocity.clone();
       const body = this.player.sprite.body as Phaser.Physics.Arcade.Body;
 
@@ -244,24 +271,25 @@ class CoveyGameScene extends Phaser.Scene {
       switch (primaryDirection) {
         case 'left':
           body.setVelocityX(-speed);
-          this.player.sprite.anims.play('misa-left-walk', true);
+          this.player.sprite.anims.play('atlas-misa-left-walk', true);
           break;
         case 'right':
           body.setVelocityX(speed);
-          this.player.sprite.anims.play('misa-right-walk', true);
+          this.player.sprite.anims.play('atlas-misa-right-walk', true);
           break;
         case 'front':
           body.setVelocityY(speed);
-          this.player.sprite.anims.play('misa-front-walk', true);
+          this.player.sprite.anims.play('atlas-misa-front-walk', true);
           break;
         case 'back':
           body.setVelocityY(-speed);
-          this.player.sprite.anims.play('misa-back-walk', true);
+          this.player.sprite.anims.play('atlas-misa-back-walk', true);
           break;
         default:
           // Not moving
           this.player.sprite.anims.stop();
           // If we were moving, pick and idle frame to use
+          // The update here will always be the same player skin so dont need to specify skinType 
           if (prevVelocity.x < 0) {
             this.player.sprite.setTexture('atlas', 'misa-left');
           } else if (prevVelocity.x > 0) {
@@ -272,12 +300,13 @@ class CoveyGameScene extends Phaser.Scene {
           break;
       }
 
+
       // Normalize and scale the velocity so that player can't move faster along a diagonal
       this.player.sprite.body.velocity.normalize().scale(speed);
 
       const isMoving = primaryDirection !== undefined;
       this.player.label.setX(body.x);
-      this.player.label.setY(body.y - 20);
+      this.player.label.setY(body.y - 40);
       if (
         !this.lastLocation ||
         this.lastLocation.x !== body.x ||
@@ -285,6 +314,7 @@ class CoveyGameScene extends Phaser.Scene {
         (isMoving && this.lastLocation.rotation !== primaryDirection) ||
         this.lastLocation.moving !== isMoving
       ) {
+        const previousLocation = this.lastLocation; 
         if (!this.lastLocation) {
           this.lastLocation = {
             x: body.x,
@@ -312,7 +342,19 @@ class CoveyGameScene extends Phaser.Scene {
             this.lastLocation.conversationLabel = undefined;
           }
         }
+        const myPlayer = this.players.find(p => p.id === this.myPlayerID);
+        
+        if (myPlayer && previousLocation) {
+          myPlayer.previousSteps.push(previousLocation); 
+          myPlayer.previousSteps = myPlayer.previousSteps.splice(-10); 
+        }
+
         this.emitMovement(this.lastLocation);
+        
+      }
+
+      if (this.requestToSpawnFollower()) {
+        this.spawnFollower(this.myPlayerID); 
       }
     }
   }
@@ -543,50 +585,55 @@ class CoveyGameScene extends Phaser.Scene {
     // Create the player's walking animations from the texture atlas. These are stored in the global
     // animation manager so any sprite can access them.
     const { anims } = this;
-    anims.create({
-      key: 'misa-left-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-left-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    anims.create({
-      key: 'misa-right-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-right-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    anims.create({
-      key: 'misa-front-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-front-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-    anims.create({
-      key: 'misa-back-walk',
-      frames: anims.generateFrameNames('atlas', {
-        prefix: 'misa-back-walk.',
-        start: 0,
-        end: 3,
-        zeroPad: 3,
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
+
+    const animTypes = ['atlas','dog-orange', 'dog-black', 'dog-grey']; 
+
+    for( let idx = 0; idx < animTypes.length; idx += 1) {
+      anims.create({
+        key: `${animTypes[idx]}-misa-left-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-left-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+      anims.create({
+        key: `${animTypes[idx]}-misa-right-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-right-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+      anims.create({
+        key: `${animTypes[idx]}-misa-front-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-front-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+      anims.create({
+        key: `${animTypes[idx]}-misa-back-walk`,
+        frames: anims.generateFrameNames(animTypes[idx], {
+          prefix: 'misa-back-walk.',
+          start: 0,
+          end: 3,
+          zeroPad: 3,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+    }
 
     const camera = this.cameras.main;
     camera.startFollow(this.player.sprite);
@@ -649,7 +696,7 @@ class CoveyGameScene extends Phaser.Scene {
 
 export default function WorldMap(): JSX.Element {
   const video = Video.instance();
-  const { emitMovement, myPlayerID } = useCoveyAppState();
+  const { emitMovement, myPlayerID, spawnFollower} = useCoveyAppState();
   const conversationAreas = useConversationAreas();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
   const [newConversation, setNewConversation] = useState<ConversationArea>();
@@ -677,7 +724,7 @@ export default function WorldMap(): JSX.Element {
 
     const game = new Phaser.Game(config);
     if (video) {
-      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID);
+      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID, spawnFollower);
       setGameScene(newGameScene);
       game.scene.add('coveyBoard', newGameScene, true);
       video.pauseGame = () => {
@@ -690,11 +737,13 @@ export default function WorldMap(): JSX.Element {
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement, setNewConversation, myPlayerID]);
+  }, [video, emitMovement, setNewConversation, myPlayerID, spawnFollower]);
 
   useEffect(() => {
-    const movementDispatcher = (player: ServerPlayer) => {
-      gameScene?.updatePlayerLocation(Player.fromServerPlayer(player));
+    const movementDispatcher = (updatedPlayers: ServerPlayer[]) => {
+      for (let idx = 0; idx < updatedPlayers.length; idx += 1) {
+        gameScene?.updatePlayerLocation(Player.fromServerPlayer(updatedPlayers[idx]));
+      }
     };
     playerMovementCallbacks.push(movementDispatcher);
     return () => {

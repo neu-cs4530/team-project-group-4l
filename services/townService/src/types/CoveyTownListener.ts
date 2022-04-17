@@ -7,10 +7,10 @@ import Player from './Player';
  */
 export default interface CoveyTownListener {
   /**
-   * Called when a player spawns a pet, where we pass the created follower 
+   * Called when a player spawns a pet, where we pass the created follower
    * @param player The Player spawning the pet
    */
-  onFollowerSpawned(spawnedFollower: Player): void;
+  // onFollowerSpawned(spawnedFollower: Player): void;
   /**
    * Called when a player joins a town
    * @param newPlayer the new player
@@ -18,10 +18,17 @@ export default interface CoveyTownListener {
   onPlayerJoined(newPlayer: Player): void;
 
   /**
-   * Called when a player's location changes
-   * @param movedPlayer the player that moved
+   * Called when a Player has gotten a new follower
+   * @param playerID The Player ID that the follower follows
+   * @param newFollower The new follower object that is now following this player.
    */
-  onPlayerMoved(movedPlayer: Player): void;
+  onFollowerJoined(playerID: string, newFollower: Player): void;
+
+  /**
+   * Called when a player's location changes
+   * @param movedPlayers the player that moved
+   */
+  onPlayerMoved(movedPlayers: Player[]): void;
 
   /**
    * Called when a player disconnects from the town

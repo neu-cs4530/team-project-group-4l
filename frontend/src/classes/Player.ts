@@ -9,10 +9,17 @@ export default class Player {
 
   public label?: Phaser.GameObjects.Text;
 
-  constructor(id: string, userName: string, location: UserLocation) {
+  public follower?: Player; 
+
+  public previousSteps: UserLocation[] = []; 
+
+  public spriteType = "atlas"; 
+
+  constructor(id: string, userName: string, location: UserLocation, spriteType:string) {
     this._id = id;
     this._userName = userName;
     this.location = location;
+    this.spriteType = spriteType
   }
 
   get userName(): string {
@@ -23,11 +30,12 @@ export default class Player {
     return this._id;
   }
 
+
   static fromServerPlayer(playerFromServer: ServerPlayer): Player {
-    return new Player(playerFromServer._id, playerFromServer._userName, playerFromServer.location);
+    return new Player(playerFromServer._id, playerFromServer._userName, playerFromServer.location, playerFromServer.spriteType);
   }
 }
-export type ServerPlayer = { _id: string, _userName: string, location: UserLocation };
+export type ServerPlayer = { _id: string, _userName: string, location: UserLocation, spriteType:string};
 
 export type Direction = 'front'|'back'|'left'|'right';
 

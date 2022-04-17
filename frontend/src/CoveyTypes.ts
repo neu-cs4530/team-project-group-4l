@@ -20,6 +20,7 @@ export type CoveyAppState = {
   currentTownIsPubliclyListed: boolean,
   myPlayerID: string,
   emitMovement: (location: UserLocation) => void,
+  spawnFollower: (playerID: string) => void, 
   socket: Socket | null,
   apiClient: TownsServiceClient
 };

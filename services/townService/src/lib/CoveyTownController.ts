@@ -1,5 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
+import { BoundingBox, ServerConversationArea, ServerPetArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
@@ -54,6 +54,10 @@ export default class CoveyTownController {
     return this._conversationAreas;
   }
 
+  get petAreas(): ServerPetArea[] {
+    return this._petAreas;
+  }
+
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
@@ -68,6 +72,9 @@ export default class CoveyTownController {
 
   /** The list of currently active ConversationAreas in this town */
   private _conversationAreas: ServerConversationArea[] = [];
+
+  /** The list of PetAreas in this town */
+  private _petAreas: ServerPetArea[] = [];
 
   private readonly _coveyTownID: string;
 
@@ -114,28 +121,55 @@ export default class CoveyTownController {
   /**
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
-   * @param player The Player we are adding this follower to. 
+   * @param player The Player we are adding this follower to.
+   * @param playerID: The Player ID belonging to this player
    */
-  addFollower(player: Player): void {
-  
-    const follower: Player = new Player('Pet');
+  addFollower(player: Player, playerID: string): void {
+    if (this.inPetArea(player)) {
+      const follower: Player = new Player('Pet');
 
-    while (player.follower !== undefined) {
-      player = player.follower;
+      let currentDepth = 0;
+
+      while (player.follower !== undefined) {
+        player = player.follower;
+        currentDepth += 1;
+      }
+
+      if (currentDepth <= 6) {
+        player.follower = follower;
+        follower.location = player.location;
+        follower.activeConversationArea = player.activeConversationArea;
+
+        this._players.push(follower);
+
+        // If this player has an active conversation, notify the area that a player has just joined this area.
+        if (player.activeConversationArea !== undefined) {
+          const convArea: ServerConversationArea = player.activeConversationArea;
+          player.activeConversationArea.occupantsByID.push(follower.id);
+          this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
+        }
+
+        const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
+
+        follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+
+        this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
+      }
     }
-    player.follower = follower;
-    follower.location = player.location;
-    follower.activeConversationArea = player.activeConversationArea;
+  }
 
-    this._players.push(follower);
-
-    // If this player has an active conversation, notify the area that a player has just joined this area.
-    if (player.activeConversationArea !== undefined) {
-      const convArea: ServerConversationArea = player.activeConversationArea;
-      player.activeConversationArea.occupantsByID.push(follower.id);
-      this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
-    }
-    this._listeners.forEach(listener => listener.onPlayerJoined(follower));
+  /**
+   * Checks whether or not a player is within any PetAreas
+   * @param player The Player to determine the location of.
+   */
+  inPetArea(player: Player): boolean {
+    let withinArea: boolean = false;
+    this.petAreas.forEach((area) => {
+      if (player.isWithinPetArea(area)) {
+        withinArea = true;
+      }
+    });
+    return withinArea;
   }
 
   /**
@@ -155,12 +189,21 @@ export default class CoveyTownController {
     }
 
     // Destroy all followers that were following this player.
-    const { follower } = player;
-    while (follower !== undefined) {
-      this._players = this._players.filter(p => p.id !== follower.id);
-      this._listeners.forEach(listener => listener.onPlayerDisconnected(follower));
-      if (follower.activeConversationArea !== undefined) {
-        this.removePlayerFromConversationArea(follower, follower.activeConversationArea);
+    if (player.follower) {
+      let { follower } = player;
+      while (follower) {
+        const currentId = follower.id;
+        const followerToRemove = follower;
+        this._players = this._players.filter(p => p.id !== currentId);
+        this._listeners.forEach(listener => listener.onPlayerDisconnected(followerToRemove));
+        if (follower.activeConversationArea !== undefined) {
+          this.removePlayerFromConversationArea(follower, follower.activeConversationArea);
+        }
+        if (follower.follower) {
+          follower = follower.follower;
+        } else {
+          break;
+        }
       }
     }
   }
@@ -176,13 +219,32 @@ export default class CoveyTownController {
    * @param location New location for this player
    */
   updatePlayerLocation(player: Player, location: UserLocation): void {
+    const updatedPlayers = this.updatePlayerLocationHelper(player, location, location.moving);
+    this._listeners.forEach(listener => listener.onPlayerMoved(updatedPlayers));
+  }
+
+  /**
+   * Helper for update player location where we do almost the same
+   * logic but for followers. The main difference is that we do not
+   * send onPlayerMoved updates as the main player will be sending that
+   * and the controller will then grab all those that have changed.
+   * @param player The Player we are updating this for
+   * @param location The location the player has moved to
+   */
+  private updatePlayerLocationHelper(
+    player: Player,
+    location: UserLocation,
+    playerMoving: boolean,
+  ): Player[] {
+    location.moving = playerMoving;
+
     const conversation = this.conversationAreas.find(
       conv => conv.label === location.conversationLabel,
     );
     const prevConversation = player.activeConversationArea;
 
-    const prevLocation = player.location;
-
+    // const prevLocation = player.location;
+    player.previousSteps.push(player.location);
     player.location = location;
     player.activeConversationArea = conversation;
 
@@ -195,13 +257,25 @@ export default class CoveyTownController {
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(conversation));
       }
     }
+    player.previousSteps = player.previousSteps.splice(-10);
 
-    this._listeners.forEach(listener => listener.onPlayerMoved(player));
-
-    // If the follower of this player exists, recursively chain update any followers following each other to update to the location the object of interest was last at.
     if (player.follower !== undefined) {
-      this.updatePlayerLocation(player.follower, prevLocation);
+      // player.previousSteps = player.previousSteps.splice(-10);
+      const oldestLocation = player.previousSteps.shift();
+
+      if (oldestLocation !== undefined) {
+        const updatedPlayers = this.updatePlayerLocationHelper(
+          player.follower,
+          oldestLocation,
+          playerMoving,
+        );
+        updatedPlayers.push(player);
+        return updatedPlayers;
+      }
+    } else {
+      return [player];
     }
+    return [];
   }
 
   /**
@@ -272,6 +346,12 @@ export default class CoveyTownController {
     });
     newArea.occupantsByID = playersInThisConversation.map(player => player.id);
     this._listeners.forEach(listener => listener.onConversationAreaUpdated(newArea));
+    return true;
+  }
+
+  addPetArea(_petArea: ServerPetArea): boolean {
+    const newArea: ServerPetArea = Object.assign(_petArea);
+    this._petAreas.push(newArea);
     return true;
   }
 

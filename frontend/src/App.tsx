@@ -50,9 +50,11 @@ type CoveyAppUpdate =
         myPlayerID: string;
         socket: Socket;
         emitMovement: (location: UserLocation) => void;
+        spawnFollower: (playerID: string) => void; 
       };
     }
   | { action: 'disconnect' };
+
 
 function defaultAppState(): CoveyAppState {
   return {
@@ -64,6 +66,7 @@ function defaultAppState(): CoveyAppState {
     userName: '',
     socket: null,
     emitMovement: () => {},
+    spawnFollower: () => {}, 
     apiClient: new TownsServiceClient(),
   };
 }
@@ -77,6 +80,7 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
     userName: state.userName,
     socket: state.socket,
     emitMovement: state.emitMovement,
+    spawnFollower: state.spawnFollower, 
     apiClient: state.apiClient,
   };
 
@@ -89,6 +93,7 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
       nextState.currentTownIsPubliclyListed = update.data.townIsPubliclyListed;
       nextState.userName = update.data.userName;
       nextState.emitMovement = update.data.emitMovement;
+      nextState.spawnFollower = update.data.spawnFollower; 
       nextState.socket = update.data.socket;
       break;
     case 'disconnect':
@@ -159,6 +164,8 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
       setConversationAreas(localConversationAreas);
       setNearbyPlayers(localNearbyPlayers);
 
+      
+
       const recalculateNearbyPlayers = () => {
         const newNearbyPlayers = calculateNearbyPlayers(localPlayers, currentLocation);
         if (!samePlayers(localNearbyPlayers, newNearbyPlayers)) {
@@ -168,6 +175,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
       };
       const emitMovement = (location: UserLocation) => {
         const now = Date.now();
+   
         currentLocation = location;
         if (now - lastMovement > MOVEMENT_UPDATE_DELAY_MS || !location.moving) {
           lastMovement = now;
@@ -181,28 +189,66 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           }
         }
       };
+
+      const spawnFollower = (playerID: string) => {
+        socket.emit('spawnFollower', playerID); 
+      }
+
       socket.on('newPlayer', (player: ServerPlayer) => {
         localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
         recalculateNearbyPlayers();
       });
-      socket.on('playerMoved', (player: ServerPlayer) => {
-        if (player._id !== gamePlayerID) {
-          const now = Date.now();
-          playerMovementCallbacks.forEach(cb => cb(player));
-          if (
-            !player.location.moving ||
-            now - lastRecalculateNearbyPlayers > CALCULATE_NEARBY_PLAYERS_MOVING_DELAY_MS
-          ) {
-            lastRecalculateNearbyPlayers = now;
-            const updatePlayer = localPlayers.find(p => p.id === player._id);
-            if (updatePlayer) {
-              updatePlayer.location = player.location;
-            } else {
-              localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
-              setPlayersInTown(localPlayers);
-            }
-            recalculateNearbyPlayers();
+      socket.on('newFollower', (playerID: string, newFollower: ServerPlayer) => {
+        let parentPlayer = localPlayers.find(p => p.id === playerID); 
+        if (parentPlayer) {
+          const clientSideFollower:Player = Player.fromServerPlayer(newFollower)
+          
+          localPlayers = localPlayers.concat(clientSideFollower); 
+          recalculateNearbyPlayers(); 
+          while (parentPlayer.follower !== undefined) {
+            parentPlayer = parentPlayer.follower; 
           }
+          
+          parentPlayer.follower = clientSideFollower; 
+        }
+      }); 
+      socket.on('playerMoved', (players: ServerPlayer[]) => {        
+        const map = new Map<string, number>(); 
+
+        for (let idx = 0; idx < localPlayers.length; idx += 1) {
+          map.set(localPlayers[idx].id, idx); 
+        }
+        
+        const playersToUpdate: ServerPlayer[] = []; 
+
+        for (let idx = 0; idx < players.length; idx += 1) {
+          const player = players[idx]; 
+          if (player._id !== gamePlayerID) {
+            const now = Date.now();
+            playersToUpdate.push(player); 
+            // playerMovementCallbacks.forEach(cb => cb([player]));
+            if (
+              !player.location.moving ||
+              now - lastRecalculateNearbyPlayers > CALCULATE_NEARBY_PLAYERS_MOVING_DELAY_MS
+            ) {
+              lastRecalculateNearbyPlayers = now;
+              const listIndex = map.get(player._id); 
+              if (listIndex !== undefined ) {
+                const updatePlayer = localPlayers[listIndex]; 
+                if (updatePlayer) {
+                  updatePlayer.location = player.location;
+                  
+                } else {
+                  localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
+                  setPlayersInTown(localPlayers);
+                }
+              }
+            }
+          }
+        }
+        if (playersToUpdate.length > 0) {
+          
+          playerMovementCallbacks.forEach(cb => cb(playersToUpdate));
         }
       });
       socket.on('playerDisconnect', (disconnectedPlayer: ServerPlayer) => {
@@ -245,7 +291,9 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           myPlayerID: gamePlayerID,
           townIsPubliclyListed: video.isPubliclyListed,
           emitMovement,
+          spawnFollower, 
           socket,
+           
         },
       });
 
