@@ -314,7 +314,6 @@ class CoveyGameScene extends Phaser.Scene {
         (isMoving && this.lastLocation.rotation !== primaryDirection) ||
         this.lastLocation.moving !== isMoving
       ) {
-        const previousLocation = this.lastLocation; 
         if (!this.lastLocation) {
           this.lastLocation = {
             x: body.x,
@@ -342,13 +341,6 @@ class CoveyGameScene extends Phaser.Scene {
             this.lastLocation.conversationLabel = undefined;
           }
         }
-        const myPlayer = this.players.find(p => p.id === this.myPlayerID);
-        
-        if (myPlayer && previousLocation) {
-          myPlayer.previousSteps.push(previousLocation); 
-          myPlayer.previousSteps = myPlayer.previousSteps.splice(-10); 
-        }
-
         this.emitMovement(this.lastLocation);
         
       }

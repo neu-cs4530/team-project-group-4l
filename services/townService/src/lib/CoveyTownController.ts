@@ -124,10 +124,10 @@ export default class CoveyTownController {
    * @param player The Player we are adding this follower to.
    * @param playerID: The Player ID belonging to this player
    */
+
   addFollower(player: Player, playerID: string): void {
     if (this.inPetArea(player)) {
       const follower: Player = new Player('Pet');
-
       let currentDepth = 0;
 
       while (player.follower !== undefined) {
@@ -151,10 +151,8 @@ export default class CoveyTownController {
 
         const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
 
-        follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+      follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
 
-        this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
-      }
     }
   }
 
@@ -259,7 +257,7 @@ export default class CoveyTownController {
     }
     player.previousSteps = player.previousSteps.splice(-10);
 
-    if (player.follower !== undefined) {
+    if (player.follower !== undefined && player.previousSteps.length >= 10) {
       // player.previousSteps = player.previousSteps.splice(-10);
       const oldestLocation = player.previousSteps.shift();
 

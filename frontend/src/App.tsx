@@ -50,7 +50,7 @@ type CoveyAppUpdate =
         myPlayerID: string;
         socket: Socket;
         emitMovement: (location: UserLocation) => void;
-        spawnFollower: (playerID: string) => void; 
+        spawnFollower: () => void; 
       };
     }
   | { action: 'disconnect' };
@@ -190,28 +190,15 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         }
       };
 
-      const spawnFollower = (playerID: string) => {
-        socket.emit('spawnFollower', playerID); 
+      const spawnFollower = () => {
+        socket.emit('spawnFollower'); 
       }
 
       socket.on('newPlayer', (player: ServerPlayer) => {
         localPlayers = localPlayers.concat(Player.fromServerPlayer(player));
         recalculateNearbyPlayers();
       });
-      socket.on('newFollower', (playerID: string, newFollower: ServerPlayer) => {
-        let parentPlayer = localPlayers.find(p => p.id === playerID); 
-        if (parentPlayer) {
-          const clientSideFollower:Player = Player.fromServerPlayer(newFollower)
-          
-          localPlayers = localPlayers.concat(clientSideFollower); 
-          recalculateNearbyPlayers(); 
-          while (parentPlayer.follower !== undefined) {
-            parentPlayer = parentPlayer.follower; 
-          }
-          
-          parentPlayer.follower = clientSideFollower; 
-        }
-      }); 
+      
       socket.on('playerMoved', (players: ServerPlayer[]) => {        
         const map = new Map<string, number>(); 
 
