@@ -158,7 +158,7 @@ export default class CoveyTownController {
     }
   }
 
- /**
+  /**
    * Checks whether or not a player is within any PetAreas
    * @param player The Player to determine the location of.
    */
