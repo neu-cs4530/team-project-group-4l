@@ -144,8 +144,6 @@ export default class CoveyTownController {
       const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
 
       follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
-
-      // this._listeners.forEach(listener => listener.onFollowerJoined(playerID, follower));
     }
   }
 
@@ -236,7 +234,7 @@ export default class CoveyTownController {
     }
     player.previousSteps = player.previousSteps.splice(-10);
 
-    if (player.follower !== undefined) {
+    if (player.follower !== undefined && player.previousSteps.length >= 10) {
       // player.previousSteps = player.previousSteps.splice(-10);
       const oldestLocation = player.previousSteps.shift();
 
