@@ -22,7 +22,7 @@ export type ServerConversationArea = {
   boundingBox: BoundingBox;
 };
 export type ServerPetArea = {
-  pet: string;
+  label: string;
   occupantsByID: string[];
   boundingBox: BoundingBox;
 };

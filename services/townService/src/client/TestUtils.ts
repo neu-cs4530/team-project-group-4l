@@ -5,7 +5,7 @@ import { AddressInfo } from 'net';
 import { Socket as ServerSocket } from 'socket.io';
 import { io, Socket } from 'socket.io-client';
 import { UserLocation } from '../CoveyTypes';
-import { BoundingBox, ServerConversationArea } from './TownsServiceClient';
+import { BoundingBox, ServerConversationArea, ServerPetArea } from './TownsServiceClient';
 
 export type RemoteServerPlayer = {
   location: UserLocation;
@@ -113,5 +113,16 @@ export function createConversationForTesting(params?: {
     label: params?.conversationLabel || nanoid(),
     occupantsByID: [],
     topic: params?.conversationTopic || nanoid(),
+  };
+}
+
+export function createPetAreaForTesting(params?: {
+  label?: string;
+  boundingBox?: BoundingBox;
+}): ServerPetArea {
+  return {
+    boundingBox: params?.boundingBox || { height: 100, width: 100, x: 400, y: 400 },
+    label: params?.label || nanoid(),
+    occupantsByID: [],
   };
 }
