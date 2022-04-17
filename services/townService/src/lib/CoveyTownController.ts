@@ -118,13 +118,12 @@ export default class CoveyTownController {
     return theSession;
   }
 
-  /**
+/**
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
    * @param player The Player we are adding this follower to.
    * @param playerID: The Player ID belonging to this player
    */
-
   addFollower(player: Player, playerID: string): void {
     if (this.inPetArea(player)) {
       const follower: Player = new Player('Pet');
@@ -148,11 +147,9 @@ export default class CoveyTownController {
           player.activeConversationArea.occupantsByID.push(follower.id);
           this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
         }
-
         const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
 
-      follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
-
+        follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
     }
   }
 
@@ -255,10 +252,10 @@ export default class CoveyTownController {
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(conversation));
       }
     }
+
     player.previousSteps = player.previousSteps.splice(-10);
 
     if (player.follower !== undefined && player.previousSteps.length >= 10) {
-      // player.previousSteps = player.previousSteps.splice(-10);
       const oldestLocation = player.previousSteps.shift();
 
       if (oldestLocation !== undefined) {
@@ -411,5 +408,28 @@ export default class CoveyTownController {
 
   disconnectAllPlayers(): void {
     this._listeners.forEach(listener => listener.onTownDestroyed());
+  }
+
+  //Function to add new petAreas to the town
+  addPetAreas(_petArea: ServerPetArea): boolean {
+    if (
+      this._petAreas.find(eachPetA =>
+        CoveyTownController.boxesOverlap(
+          eachPetA.boundingBox,
+          _petArea.boundingBox,
+        ),
+      ) !== undefined
+    ) {
+      return false;
+    }
+  }
+    this._petAreas.push(_petArea);
+    const playersInThisPet = this.players.filter(player => player.isWithin(_petArea));
+    playersInThisPet.forEach(player => {
+      player.activeConversationArea = _petArea;
+    });
+    _petArea.occupantsByID = playersInThisPet.map(player => player.id);
+    this._listeners.forEach(listener => listener.onConversationAreaUpdated(_petArea));
+    return true;
   }
 }
