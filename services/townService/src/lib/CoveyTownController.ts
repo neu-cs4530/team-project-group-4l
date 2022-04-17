@@ -126,16 +126,6 @@ export default class CoveyTownController {
   
     const follower: Player = new Player('Pet');
     
-    let inPetA: boolean = false;
-    for (let i = 0; i < this.petAreas.length; i += 1) {
-      if (player.isWithin(this.petAreas[i])) {
-        inPetA = true;
-      }
-    }
-    if (!inPetA) {
-      return;
-    }
-
     while (player.follower !== undefined) {
       player = player.follower;
     }
