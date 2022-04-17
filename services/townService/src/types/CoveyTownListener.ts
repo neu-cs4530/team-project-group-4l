@@ -18,13 +18,6 @@ export default interface CoveyTownListener {
   onPlayerJoined(newPlayer: Player): void;
 
   /**
-   * Called when a Player has gotten a new follower
-   * @param playerID The Player ID that the follower follows
-   * @param newFollower The new follower object that is now following this player.
-   */
-  onFollowerJoined(playerID: string, newFollower: Player): void;
-
-  /**
    * Called when a player's location changes
    * @param movedPlayers the player that moved
    */
