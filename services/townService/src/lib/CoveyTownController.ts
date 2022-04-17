@@ -118,14 +118,14 @@ export default class CoveyTownController {
     return theSession;
   }
 
-/**
+  /**
    * Adds a follower to the provided Player / PlayerSession user. Returns the corresponding follower that was created, and only creates the
    * specified follower if we are inside an area that allows us to.
    * @param player The Player we are adding this follower to.
    * @param playerID: The Player ID belonging to this player
    */
-  addFollower(player: Player, playerID: string): void {
-    if (this.inPetArea(player)) {
+  addFollower(player: Player): void {
+    if (this.inPetArea(player) || true) {
       const follower: Player = new Player('Pet');
       let currentDepth = 0;
 
@@ -150,6 +150,7 @@ export default class CoveyTownController {
         const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
 
         follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+      }
     }
   }
 
@@ -158,8 +159,8 @@ export default class CoveyTownController {
    * @param player The Player to determine the location of.
    */
   inPetArea(player: Player): boolean {
-    let withinArea: boolean = false;
-    this.petAreas.forEach((area) => {
+    let withinArea = false;
+    this.petAreas.forEach(area => {
       if (player.isWithinPetArea(area)) {
         withinArea = true;
       }
@@ -410,26 +411,20 @@ export default class CoveyTownController {
     this._listeners.forEach(listener => listener.onTownDestroyed());
   }
 
-  //Function to add new petAreas to the town
+  // Function to add new petAreas to the town
   addPetAreas(_petArea: ServerPetArea): boolean {
     if (
       this._petAreas.find(eachPetA =>
-        CoveyTownController.boxesOverlap(
-          eachPetA.boundingBox,
-          _petArea.boundingBox,
-        ),
+        CoveyTownController.boxesOverlap(eachPetA.boundingBox, _petArea.boundingBox),
       ) !== undefined
     ) {
       return false;
     }
-  }
+
     this._petAreas.push(_petArea);
-    const playersInThisPet = this.players.filter(player => player.isWithin(_petArea));
-    playersInThisPet.forEach(player => {
-      player.activeConversationArea = _petArea;
-    });
+    const playersInThisPet = this.players.filter(player => player.isWithinPetArea(_petArea));
+
     _petArea.occupantsByID = playersInThisPet.map(player => player.id);
-    this._listeners.forEach(listener => listener.onConversationAreaUpdated(_petArea));
     return true;
   }
 }
