@@ -349,9 +349,6 @@ export default class CoveyTownController {
 
   //Function to add new petAreas to the town
   addPetAreas(_petArea: ServerPetArea): boolean {
-    if (_petArea.topic === '') {
-      return false;
-    }
     if (
       this._petAreas.find(eachPetA =>
         CoveyTownController.boxesOverlap(
@@ -371,5 +368,5 @@ export default class CoveyTownController {
     _petArea.occupantsByID = playersInThisPet.map(player => player.id);
     this._listeners.forEach(listener => listener.onConversationAreaUpdated(_petArea));
     return true;
-}
+  }
 }
