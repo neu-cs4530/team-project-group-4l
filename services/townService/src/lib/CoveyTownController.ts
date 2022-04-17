@@ -209,17 +209,6 @@ export default class CoveyTownController {
       }
     }
 
-    for (let i = 0; i < this.petAreas.length; i += 1) {
-      if (player.isWithin(this.petAreas[i])) {
-        this.petAreas[i].occupantsByID.push(player.id);
-      }
-      const plIND: number = this.petAreas[i].occupantsByID.indexOf(player.id)
-      if (plIND > 0) {
-        if (!player.isWithin(this.petAreas[i])) {
-          this.petAreas[i].occupantsByID.splice(plIND, 1);
-        }
-      }
-    }
 
     this._listeners.forEach(listener => listener.onPlayerMoved(player));
 
