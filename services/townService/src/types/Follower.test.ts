@@ -24,8 +24,12 @@ describe('Follower', () => {
     it('players follower field should reflect its follower', () => {
       const player = new Player('test player');
       const pet = new Player('test pet');
-      player.follower = pet;
-      expect(player.follower?.userName).toEqual(pet.userName);
+      const location:UserLocation = { moving: false, rotation: 'front', x: 400, y: 400 };
+      const petArea = TestUtils.createPetAreaForTesting();
+      expect(player.follower).toBe(undefined);
+      testingTown.updatePlayerLocation(player, location);
+      testingTown.addFollower(player);
+      expect(player.follower?.userName).toEqual('Pet');
     });
     it('addFollower should properly add the first follower to a player', () => {
       const player = new Player('test player');
@@ -35,25 +39,26 @@ describe('Follower', () => {
       testingTown.addPetArea(petArea);
       const location:UserLocation = { moving: false, rotation: 'front', x: 400, y: 400 };
       testingTown.updatePlayerLocation(player, location);
-      testingTown.addFollower(player, player.id);
+      testingTown.addFollower(player);
       expect(player.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(2);
     });
-    it('addFollower should properly add followers to the player after the first one', () => {
+    it('addFollower should properly add multiple followers', () => {
       const player = new Player('test player');
       testingTown.addPlayer(player);
-      expect(player.follower).toBe(undefined);
-      testingTown.addFollower(player, player.id);
+      const location:UserLocation = { moving: false, rotation: 'front', x: 400, y: 400 };
+      testingTown.updatePlayerLocation(player, location);
+      testingTown.addFollower(player);
       expect(player.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(2);
 
-      testingTown.addFollower(player, player.id);
+      testingTown.addFollower(player);
       expect(player.follower?.userName).toBe('Pet');
       const firstPet = player.follower;
       expect(firstPet?.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(3);
 
-      testingTown.addFollower(player, player.id);
+      testingTown.addFollower(player);
       const secondPet = firstPet?.follower;
       expect(secondPet?.follower?.userName).toBe('Pet');
       expect(testingTown.players.length).toBe(4);
@@ -61,27 +66,32 @@ describe('Follower', () => {
     it('addFollower should add the follower to the correct player', () => {
       const player1 = new Player('first test player');
       const player2 = new Player('second test player');
+      const location:UserLocation = { moving: false, rotation: 'front', x: 400, y: 400 };
+      testingTown.updatePlayerLocation(player1, location);
+      testingTown.updatePlayerLocation(player2, location);
       testingTown.addPlayer(player1);
       testingTown.addPlayer(player2);
-      testingTown.addFollower(player1, player1.id);
+      testingTown.addFollower(player1);
       expect(player1.follower?.userName).toBe('Pet');
       expect(player2.follower).toBe(undefined);
 
-      testingTown.addFollower(player2, player2.id);
+      testingTown.addFollower(player2);
       expect(player2.follower?.userName).toBe('Pet');
     });
     it('addFollower should not add more than seven followers to a player', () => {
       let player1 = new Player('first test player');
       testingTown.addPlayer(player1);
+      const location:UserLocation = { moving: false, rotation: 'front', x: 400, y: 400 };
+      testingTown.updatePlayerLocation(player1, location);
 
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
 
       let currentDepth = 0;
       while (player1.follower !== undefined) {
@@ -102,21 +112,20 @@ describe('Follower', () => {
       const location2:UserLocation = { moving: false, rotation: 'front', x: 800, y: 800 };
 
       testingTown.updatePlayerLocation(player1, location1);
-      testingTown.updatePlayerLocation(player2, location2);
 
-      const player1Follower = testingTown.addFollower(player1, player1.id);
-      const player2Follower = testingTown.addFollower(player2, player2.id);
-      expect(player1Follower).toBe(true);
-      expect(player2Follower).toBe(false);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player2);
+      expect(player1.follower?.userName).toBe('Pet');
+      expect(player2.follower).toBe(undefined);
     });
     it('should allow multiple players on the map to have pets', () => {
       let player1 = new Player('first test player');
       let player2 = new Player('second test player');
       testingTown.addPlayer(player1);
       testingTown.addPlayer(player2);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player1, player1.id);
-      testingTown.addFollower(player2, player2.id);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player1);
+      testingTown.addFollower(player2);
       expect(player1.follower?.userName).toBe('Pet');
       expect(player2.follower?.userName).toBe('Pet');
     });
