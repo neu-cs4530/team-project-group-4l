@@ -12,6 +12,10 @@ The frontend implements video chat using the [Twilio Programmable Video](https:/
 
 A backend service (in the `services/townService` directory) implements the application logic: tracking which "towns" are available to be joined, and the state of each of those towns.
 
+## Attributions
+
+- Our dog sprite sheet was taken from https://www.pngfind.com/mpng/obJmhw_stardew-valley-shiba-inu-shepherd-mix-husky-pets/ with a Personal User Liscence. If this is to become a commercial product please swap these out.
+
 ## Running this app locally
 
 Running the application locally entails running both the backend service and a frontend.
