@@ -11,8 +11,6 @@ export default class Player {
 
   public follower?: Player; 
 
-  public previousSteps: UserLocation[] = []; 
-
   public spriteType = "atlas"; 
 
   constructor(id: string, userName: string, location: UserLocation, spriteType:string) {
