@@ -150,6 +150,20 @@ export default class CoveyTownController {
       }
     }
   }
+  
+    /**
+   * Checks whether or not a player is within any PetAreas
+   * @param player The Player to determine the location of.
+   */
+  inPetArea(player: Player): boolean {
+    let withinArea: boolean = false;
+    this.petAreas.forEach((area) => {
+      if (player.isWithinPetArea(area)) {
+        withinArea = true;
+      }
+    });
+    return withinArea;
+  }
 
   /**
    * Destroys all data related to a player in this town.
