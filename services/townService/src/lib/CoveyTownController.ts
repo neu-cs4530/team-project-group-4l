@@ -54,10 +54,6 @@ export default class CoveyTownController {
     return this._conversationAreas;
   }
 
-  get petAreas(): ServerConversationArea[] {
-    return this._petAreas;
-  }
-
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
@@ -82,8 +78,6 @@ export default class CoveyTownController {
   private _isPubliclyListed: boolean;
 
   private _capacity: number;
-
-  private _petAreas: ServerConversationArea[] = [];
 
   constructor(friendlyName: string, isPubliclyListed: boolean) {
     this._coveyTownID = process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID();
@@ -354,7 +348,7 @@ export default class CoveyTownController {
   }
 
   //Function to add new petAreas to the town
-  addPetAreas(_petArea: ServerConversationArea): boolean {
+  addPetAreas(_petArea: ServerPetArea): boolean {
     if (_petArea.topic === '') {
       return false;
     }
