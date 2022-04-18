@@ -75,12 +75,21 @@ class CoveyGameScene extends Phaser.Scene {
 
   private _onGameReadyListeners: Callback[] = [];
 
+  private apiClient: spawnPet; 
+
+  private sessionToken: string; 
+
+  private currentTownID: string; 
+
   constructor(
     video: Video,
     emitMovement: (loc: UserLocation) => void,
     setNewConversation: (conv: ConversationArea) => void,
     myPlayerID: string,
     spawnFollower: (playerID: string) => void, 
+    apiClient: spawnPet, 
+    sessionToken: string, 
+    currentTownID: string, 
   ) {
     super('PlayGame');
     this.video = video;
@@ -88,6 +97,9 @@ class CoveyGameScene extends Phaser.Scene {
     this.myPlayerID = myPlayerID;
     this.setNewConversation = setNewConversation;
     this.spawnFollower = spawnFollower; 
+    this.apiClient = apiClient;
+    this.sessionToken = sessionToken;
+    this.currentTownID = currentTownID;
   }
 
   preload() {
@@ -363,7 +375,7 @@ class CoveyGameScene extends Phaser.Scene {
 
   create() {
     const map = this.make.tilemap({ key: 'map' });
-
+  
     /* Parameters are the name you gave the tileset in Tiled and then the key of the
      tileset image in Phaser's cache (i.e. the name you used in preload)
      */
@@ -604,15 +616,17 @@ class CoveyGameScene extends Phaser.Scene {
     this.physics.add.overlap(
       sprite,
       petAreaSprites,
-      (overlappingPlayer, petAreaSprite) => {
-        const request : PetAreaCreateRequest = {
-          petType: petAreaSprite.type,
-          coveyTownID: ''
-        }
+      async (overlappingPlayer, petAreaSprite) => {
         this.infoTextBox?.setVisible(false);
         if (cursorKeys.space.isDown) {
-            spawnPet({petType: })
-            console.log('hi')
+          console.log(this.sessionToken); 
+            // const {apiClient, sessionToken, currentTownID} = useCoveyAppState();
+            await this.apiClient.spawnPet({
+              sessionToken:this.sessionToken, 
+              coveyTownID:this.currentTownID, 
+              petType:petAreaSprite.type
+            });
+            console.log("Spawning"); 
         }
       },
     );
@@ -717,6 +731,7 @@ class CoveyGameScene extends Phaser.Scene {
     // Call any listeners that are waiting for the game to be initialized
     this._onGameReadyListeners.forEach(listener => listener());
     this._onGameReadyListeners = [];
+    
   }
 
   pause() {
@@ -746,7 +761,7 @@ class CoveyGameScene extends Phaser.Scene {
 
 export default function WorldMap(): JSX.Element {
   const video = Video.instance();
-  const { emitMovement, myPlayerID, spawnFollower} = useCoveyAppState();
+  const { emitMovement, myPlayerID, spawnFollower, apiClient, sessionToken, currentTownID} = useCoveyAppState();
   const conversationAreas = useConversationAreas();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
   const [newConversation, setNewConversation] = useState<ConversationArea>();
@@ -769,12 +784,12 @@ export default function WorldMap(): JSX.Element {
         arcade: {
           gravity: { y: 0 }, // Top down game, so no gravity
         },
-      },
+      }
     };
 
     const game = new Phaser.Game(config);
     if (video) {
-      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID, spawnFollower);
+      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID, spawnFollower, apiClient, sessionToken, currentTownID);
       setGameScene(newGameScene);
       game.scene.add('coveyBoard', newGameScene, true);
       video.pauseGame = () => {

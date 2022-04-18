@@ -86,8 +86,9 @@ export interface ConversationCreateRequest {
 }
 
 export interface PetAreaCreateRequest {
-  petType: string;
+  sessionToken:string; 
   coveyTownID: string;
+  petType: string;
 };
 
 

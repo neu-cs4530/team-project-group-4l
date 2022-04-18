@@ -125,7 +125,7 @@ export default class CoveyTownController {
    * @param playerID: The Player ID belonging to this player
    */
   addFollower(player: Player): void {
-    if (this.inPetArea(player) || true) {
+    if (this.inPetArea(player)) {
       const follower: Player = new Player('Pet');
       let currentDepth = 0;
 
