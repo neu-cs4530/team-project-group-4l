@@ -619,14 +619,11 @@ class CoveyGameScene extends Phaser.Scene {
       async (overlappingPlayer, petAreaSprite) => {
         this.infoTextBox?.setVisible(false);
         if (cursorKeys.space.isDown) {
-          console.log(this.sessionToken); 
-            // const {apiClient, sessionToken, currentTownID} = useCoveyAppState();
             await this.apiClient.spawnPet({
               sessionToken:this.sessionToken, 
               coveyTownID:this.currentTownID, 
-              petType:petAreaSprite.type
+              petType:petAreaSprite.data.list.petType
             });
-            console.log("Spawning"); 
         }
       },
     );
