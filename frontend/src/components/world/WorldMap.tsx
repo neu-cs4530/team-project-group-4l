@@ -437,12 +437,14 @@ class CoveyGameScene extends Phaser.Scene {
       'Objects',
       obj => obj.type === 'petArea',
     );
+    console.log(petAreaObjects)
     const petAreaSprites = map.createFromObjects(
       'Objects',
-      petAreaObjects.map(obj => ({ id: obj.id, key: obj.properties.name})),
+      petAreaObjects.map(obj => ({ id: obj.id, key: obj.properties[0].value})),
     );
     petAreaSprites.forEach((s, index) => {
-      s.type = petAreaObjects[index].properties.name;
+      console.log(petAreaObjects[index].properties[0].value)
+      s.type = petAreaObjects[index].properties[0].value;
     })
     this.physics.world.enable(petAreaSprites);
     petAreaSprites.forEach((pet, index) => {
@@ -594,12 +596,12 @@ class CoveyGameScene extends Phaser.Scene {
     this.physics.add.overlap(
       sprite,
       conversationSprites,
-      (overlappingPlayer, conversationSprite) => {
+      async (overlappingPlayer, conversationSprite) => {
         const conversationLabel = conversationSprite.name;
         const conv = this.conversationAreas.find(area => area.label === conversationLabel);
         this.currentConversationArea = conv;
         if (conv?.conversationArea) {
-          this.infoTextBox?.setVisible(false);
+          this.infoTextBox?.setVisible(true);
         } else {
           if (cursorKeys.space.isDown) {
             const newConversation = new ConversationArea(
@@ -608,7 +610,7 @@ class CoveyGameScene extends Phaser.Scene {
             );
             this.setNewConversation(newConversation);
           }
-          this.infoTextBox?.setVisible(true);
+          this.infoTextBox?.setVisible(false);
         }
       },
     );
@@ -617,7 +619,6 @@ class CoveyGameScene extends Phaser.Scene {
       sprite,
       petAreaSprites,
       async (overlappingPlayer, petAreaSprite) => {
-        this.infoTextBox?.setVisible(false);
         if (cursorKeys.space.isDown) {
           console.log(this.sessionToken); 
             // const {apiClient, sessionToken, currentTownID} = useCoveyAppState();
