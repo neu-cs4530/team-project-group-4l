@@ -10,6 +10,8 @@ import usePlayerMovement from '../../hooks/usePlayerMovement';
 import usePlayersInTown from '../../hooks/usePlayersInTown';
 import { Callback } from '../VideoCall/VideoFrontend/types';
 import NewConversationModal from './NewCoversationModal';
+import spawnPet, {PetAreaCreateRequest} from '../../classes/TownsServiceClient'
+
 
 // Original inspiration and code from:
 // https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
@@ -20,6 +22,12 @@ type ConversationGameObjects = {
   sprite: Phaser.GameObjects.Sprite;
   label: string;
   conversationArea?: ConversationArea;
+};
+type PetAreaGameObjects = {
+  labelText: Phaser.GameObjects.Text;
+  topicText: Phaser.GameObjects.Text;
+  sprite: Phaser.GameObjects.Sprite;
+  label: string;
 };
 
 class CoveyGameScene extends Phaser.Scene {
@@ -35,6 +43,8 @@ class CoveyGameScene extends Phaser.Scene {
   private conversationAreas: ConversationGameObjects[] = [];
 
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys[] = [];
+
+  private petAreas: PetAreaGameObjects[] = [];
 
   /*
    * A "captured" key doesn't send events to the browser - they are trapped by Phaser
@@ -411,6 +421,38 @@ class CoveyGameScene extends Phaser.Scene {
       // the map
     });
 
+    const petAreaObjects = map.filterObjects(
+      'Objects',
+      obj => obj.type === 'petArea',
+    );
+    const petAreaSprites = map.createFromObjects(
+      'Objects',
+      petAreaObjects.map(obj => ({ id: obj.id, key: obj.properties.name})),
+    );
+    petAreaSprites.forEach((s, index) => {
+      s.type = petAreaObjects[index].properties.name;
+    })
+    this.physics.world.enable(petAreaSprites);
+    petAreaSprites.forEach((pet, index) => {
+      
+      const sprite = pet as Phaser.GameObjects.Sprite;
+      sprite.y += sprite.displayHeight;
+      const labelText = this.add.text(
+        sprite.x - sprite.displayWidth / 2,
+        sprite.y - sprite.displayHeight / 2,
+        pet.name,
+        { color: '#FFFFFF', backgroundColor: '#000000' },
+      );
+      const topicText = this.add.text(
+        sprite.x - sprite.displayWidth / 2,
+        sprite.y + sprite.displayHeight / 2,
+        pet.type,
+        { color: '#000000' },
+      );
+      sprite.setTintFill();
+      sprite.setAlpha(0.3);
+    });
+
     const conversationAreaObjects = map.filterObjects(
       'Objects',
       obj => obj.type === 'conversation',
@@ -438,7 +480,7 @@ class CoveyGameScene extends Phaser.Scene {
       sprite.setTintFill();
       sprite.setAlpha(0.3);
 
-      this.conversationAreas.push({
+      this.petAreas.push({
         labelText,
         topicText,
         sprite,
@@ -555,6 +597,22 @@ class CoveyGameScene extends Phaser.Scene {
             this.setNewConversation(newConversation);
           }
           this.infoTextBox?.setVisible(true);
+        }
+      },
+    );
+    
+    this.physics.add.overlap(
+      sprite,
+      petAreaSprites,
+      (overlappingPlayer, petAreaSprite) => {
+        const request : PetAreaCreateRequest = {
+          petType: petAreaSprite.type,
+          coveyTownID: ''
+        }
+        this.infoTextBox?.setVisible(false);
+        if (cursorKeys.space.isDown) {
+            spawnPet({petType: })
+            console.log('hi')
         }
       },
     );
