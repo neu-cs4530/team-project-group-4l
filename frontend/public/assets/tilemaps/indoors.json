@@ -61,7 +61,7 @@
          "name":"Below Player",
          "opacity":1,
          "type":"tilelayer",
-         "visible":true,
+         "visible":false,
          "width":120,
          "x":0,
          "y":0
@@ -114,6 +114,7 @@
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          "height":45,
          "id":6,
+         "locked":true,
          "name":"Walls",
          "opacity":1,
          "type":"tilelayer",
@@ -488,6 +489,23 @@
                  "y":1105.3335
                 }, 
                 {
+                 "height":64.6588426966292,
+                 "id":32,
+                 "name":"Pet Area 1",
+                 "properties":[
+                        {
+                         "name":"petType",
+                         "type":"string",
+                         "value":"Husky"
+                        }],
+                 "rotation":0,
+                 "type":"petArea",
+                 "visible":true,
+                 "width":94.9141910112359,
+                 "x":383.861256554307,
+                 "y":159.266084269663
+                }, 
+                {
                  "height":125.333,
                  "id":28,
                  "name":"Foyer Table 1",
@@ -530,6 +548,74 @@
                  "width":164.667,
                  "x":3482.99983333333,
                  "y":1058.66666666667
+                }, 
+                {
+                 "height":64.6588,
+                 "id":33,
+                 "name":"Pet Area 2",
+                 "properties":[
+                        {
+                         "name":"petType",
+                         "type":"string",
+                         "value":"Orange Doge"
+                        }],
+                 "rotation":0,
+                 "type":"petArea",
+                 "visible":true,
+                 "width":98.284973033708,
+                 "x":638.497962921348,
+                 "y":159.805431460674
+                }, 
+                {
+                 "height":64.6588,
+                 "id":34,
+                 "name":"Pet Area 3",
+                 "properties":[
+                        {
+                         "name":"petType",
+                         "type":"string",
+                         "value":"Black Doge"
+                        }],
+                 "rotation":0,
+                 "type":"petArea",
+                 "visible":true,
+                 "width":96.037782022472,
+                 "x":894.677738202247,
+                 "y":158.681835955056
+                }, 
+                {
+                 "height":64.6588,
+                 "id":35,
+                 "name":"Pet Area 4",
+                 "properties":[
+                        {
+                         "name":"petType",
+                         "type":"string",
+                         "value":"Doge"
+                        }],
+                 "rotation":0,
+                 "type":"petArea",
+                 "visible":true,
+                 "width":94.914186516854,
+                 "x":1120.52043483146,
+                 "y":158.681835955056
+                }, 
+                {
+                 "height":64.6588,
+                 "id":36,
+                 "name":"Pet Area 5",
+                 "properties":[
+                        {
+                         "name":"petType",
+                         "type":"string",
+                         "value":"White Husky"
+                        }],
+                 "rotation":0,
+                 "type":"petArea",
+                 "visible":true,
+                 "width":98.284973033708,
+                 "x":1277.82380561798,
+                 "y":159.805431460674
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -538,7 +624,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":32,
+ "nextobjectid":38,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.8.4",

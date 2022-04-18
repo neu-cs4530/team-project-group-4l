@@ -7,6 +7,13 @@ export type ServerConversationArea = {
   boundingBox: BoundingBox;
 };
 
+export type ServerPetArea = {
+  label: string;
+  occupantsByID: string[];
+  boundingBox: BoundingBox;
+};
+
+
 export type ConversationAreaListener = {
   onTopicChange?: (newTopic: string | undefined) => void;
   onOccupantsChange?: (newOccupants: string[]) => void;

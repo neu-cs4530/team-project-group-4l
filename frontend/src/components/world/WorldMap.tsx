@@ -10,6 +10,8 @@ import usePlayerMovement from '../../hooks/usePlayerMovement';
 import usePlayersInTown from '../../hooks/usePlayersInTown';
 import { Callback } from '../VideoCall/VideoFrontend/types';
 import NewConversationModal from './NewCoversationModal';
+import spawnPet, {PetAreaCreateRequest} from '../../classes/TownsServiceClient'
+
 
 // Original inspiration and code from:
 // https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
@@ -20,6 +22,12 @@ type ConversationGameObjects = {
   sprite: Phaser.GameObjects.Sprite;
   label: string;
   conversationArea?: ConversationArea;
+};
+type PetAreaGameObjects = {
+  labelText: Phaser.GameObjects.Text;
+  topicText: Phaser.GameObjects.Text;
+  sprite: Phaser.GameObjects.Sprite;
+  label: string;
 };
 
 class CoveyGameScene extends Phaser.Scene {
@@ -35,6 +43,8 @@ class CoveyGameScene extends Phaser.Scene {
   private conversationAreas: ConversationGameObjects[] = [];
 
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys[] = [];
+
+  private petAreas: PetAreaGameObjects[] = [];
 
   /*
    * A "captured" key doesn't send events to the browser - they are trapped by Phaser
@@ -65,12 +75,21 @@ class CoveyGameScene extends Phaser.Scene {
 
   private _onGameReadyListeners: Callback[] = [];
 
+  private apiClient: spawnPet; 
+
+  private sessionToken: string; 
+
+  private currentTownID: string; 
+
   constructor(
     video: Video,
     emitMovement: (loc: UserLocation) => void,
     setNewConversation: (conv: ConversationArea) => void,
     myPlayerID: string,
     spawnFollower: (playerID: string) => void, 
+    apiClient: spawnPet, 
+    sessionToken: string, 
+    currentTownID: string, 
   ) {
     super('PlayGame');
     this.video = video;
@@ -78,6 +97,9 @@ class CoveyGameScene extends Phaser.Scene {
     this.myPlayerID = myPlayerID;
     this.setNewConversation = setNewConversation;
     this.spawnFollower = spawnFollower; 
+    this.apiClient = apiClient;
+    this.sessionToken = sessionToken;
+    this.currentTownID = currentTownID;
   }
 
   preload() {
@@ -353,7 +375,7 @@ class CoveyGameScene extends Phaser.Scene {
 
   create() {
     const map = this.make.tilemap({ key: 'map' });
-
+  
     /* Parameters are the name you gave the tileset in Tiled and then the key of the
      tileset image in Phaser's cache (i.e. the name you used in preload)
      */
@@ -411,6 +433,38 @@ class CoveyGameScene extends Phaser.Scene {
       // the map
     });
 
+    const petAreaObjects = map.filterObjects(
+      'Objects',
+      obj => obj.type === 'petArea',
+    );
+    const petAreaSprites = map.createFromObjects(
+      'Objects',
+      petAreaObjects.map(obj => ({ id: obj.id, key: obj.properties.name})),
+    );
+    petAreaSprites.forEach((s, index) => {
+      s.type = petAreaObjects[index].properties.name;
+    })
+    this.physics.world.enable(petAreaSprites);
+    petAreaSprites.forEach((pet, index) => {
+      
+      const sprite = pet as Phaser.GameObjects.Sprite;
+      sprite.y += sprite.displayHeight;
+      const labelText = this.add.text(
+        sprite.x - sprite.displayWidth / 2,
+        sprite.y - sprite.displayHeight / 2,
+        pet.name,
+        { color: '#FFFFFF', backgroundColor: '#000000' },
+      );
+      const topicText = this.add.text(
+        sprite.x - sprite.displayWidth / 2,
+        sprite.y + sprite.displayHeight / 2,
+        pet.type,
+        { color: '#000000' },
+      );
+      sprite.setTintFill();
+      sprite.setAlpha(0.3);
+    });
+
     const conversationAreaObjects = map.filterObjects(
       'Objects',
       obj => obj.type === 'conversation',
@@ -438,7 +492,7 @@ class CoveyGameScene extends Phaser.Scene {
       sprite.setTintFill();
       sprite.setAlpha(0.3);
 
-      this.conversationAreas.push({
+      this.petAreas.push({
         labelText,
         topicText,
         sprite,
@@ -558,6 +612,24 @@ class CoveyGameScene extends Phaser.Scene {
         }
       },
     );
+    
+    this.physics.add.overlap(
+      sprite,
+      petAreaSprites,
+      async (overlappingPlayer, petAreaSprite) => {
+        this.infoTextBox?.setVisible(false);
+        if (cursorKeys.space.isDown) {
+          console.log(this.sessionToken); 
+            // const {apiClient, sessionToken, currentTownID} = useCoveyAppState();
+            await this.apiClient.spawnPet({
+              sessionToken:this.sessionToken, 
+              coveyTownID:this.currentTownID, 
+              petType:petAreaSprite.type
+            });
+            console.log("Spawning"); 
+        }
+      },
+    );
 
     this.emitMovement({
       rotation: 'front',
@@ -659,6 +731,7 @@ class CoveyGameScene extends Phaser.Scene {
     // Call any listeners that are waiting for the game to be initialized
     this._onGameReadyListeners.forEach(listener => listener());
     this._onGameReadyListeners = [];
+    
   }
 
   pause() {
@@ -688,7 +761,7 @@ class CoveyGameScene extends Phaser.Scene {
 
 export default function WorldMap(): JSX.Element {
   const video = Video.instance();
-  const { emitMovement, myPlayerID, spawnFollower} = useCoveyAppState();
+  const { emitMovement, myPlayerID, spawnFollower, apiClient, sessionToken, currentTownID} = useCoveyAppState();
   const conversationAreas = useConversationAreas();
   const [gameScene, setGameScene] = useState<CoveyGameScene>();
   const [newConversation, setNewConversation] = useState<ConversationArea>();
@@ -711,12 +784,12 @@ export default function WorldMap(): JSX.Element {
         arcade: {
           gravity: { y: 0 }, // Top down game, so no gravity
         },
-      },
+      }
     };
 
     const game = new Phaser.Game(config);
     if (video) {
-      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID, spawnFollower);
+      const newGameScene = new CoveyGameScene(video, emitMovement, setNewConversation, myPlayerID, spawnFollower, apiClient, sessionToken, currentTownID);
       setGameScene(newGameScene);
       game.scene.add('coveyBoard', newGameScene, true);
       video.pauseGame = () => {

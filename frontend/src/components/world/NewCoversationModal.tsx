@@ -40,7 +40,7 @@ export default function NewConversationModal( {isOpen, closeModal, newConversati
             sessionToken,
             coveyTownID: currentTownID,
             conversationArea: conversationToCreate.toServerConversationArea(),
-          });
+          }); // whenever user press space call apiClient petType
           toast({
             title: 'Conversation Created!',
             status: 'success',

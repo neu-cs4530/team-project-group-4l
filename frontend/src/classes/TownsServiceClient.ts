@@ -1,8 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import assert from 'assert';
 import { ServerPlayer } from './Player';
-import { ServerConversationArea } from './ConversationArea';
-
+import { ServerConversationArea, ServerPetArea } from './ConversationArea';
+import BoundingBox from './BoundingBox';
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
  */
@@ -85,6 +85,13 @@ export interface ConversationCreateRequest {
   conversationArea: ServerConversationArea;
 }
 
+export interface PetAreaCreateRequest {
+  sessionToken:string; 
+  coveyTownID: string;
+  petType: string;
+};
+
+
 /**
  * Envelope that wraps any response from the server
  */
@@ -153,6 +160,11 @@ export default class TownsServiceClient {
   
   async createConversation(requestData: ConversationCreateRequest) : Promise<void>{
     const responseWrapper = await this._axios.post(`/towns/${requestData.coveyTownID}/conversationAreas`, requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async spawnPet(requestData: PetAreaCreateRequest) : Promise<void>{
+    const responseWrapper = await this._axios.post(`/towns/${requestData.coveyTownID}/spawnPet`, requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
