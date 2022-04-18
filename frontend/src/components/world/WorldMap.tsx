@@ -630,6 +630,7 @@ class CoveyGameScene extends Phaser.Scene {
               coveyTownID:this.currentTownID, 
               petType:petAreaSprite.data.list.petType
             });
+            cursorKeys.space.reset();
         }
       },
     );
