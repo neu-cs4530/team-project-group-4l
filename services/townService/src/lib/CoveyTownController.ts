@@ -124,34 +124,35 @@ export default class CoveyTownController {
    * @param player The Player we are adding this follower to.
    * @param playerID: The Player ID belonging to this player
    */
-  addFollower(player: Player): void {
-    if (this.inPetArea(player)) {
-      const follower: Player = new Player('Pet');
-      let currentDepth = 0;
+  addFollower(player: Player, followerType: string): boolean {
+    const follower: Player = new Player('Pet');
+    let currentDepth = 0;
 
-      while (player.follower !== undefined) {
-        player = player.follower;
-        currentDepth += 1;
-      }
-
-      if (currentDepth <= 6) {
-        player.follower = follower;
-        follower.location = player.location;
-        follower.activeConversationArea = player.activeConversationArea;
-
-        this._players.push(follower);
-
-        // If this player has an active conversation, notify the area that a player has just joined this area.
-        if (player.activeConversationArea !== undefined) {
-          const convArea: ServerConversationArea = player.activeConversationArea;
-          player.activeConversationArea.occupantsByID.push(follower.id);
-          this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
-        }
-        const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
-
-        follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
-      }
+    while (player.follower !== undefined) {
+      player = player.follower;
+      currentDepth += 1;
     }
+
+    if (currentDepth <= 6) {
+      player.follower = follower;
+      follower.location = player.location;
+      follower.activeConversationArea = player.activeConversationArea;
+
+      this._players.push(follower);
+
+      // If this player has an active conversation, notify the area that a player has just joined this area.
+      if (player.activeConversationArea !== undefined) {
+        const convArea: ServerConversationArea = player.activeConversationArea;
+        player.activeConversationArea.occupantsByID.push(follower.id);
+        this._listeners.forEach(listener => listener.onConversationAreaUpdated(convArea));
+      }
+      // const animalTypes = ['dog-orange', 'dog-black', 'dog-grey'];
+
+      // follower.spriteType = animalTypes[Math.floor(Math.random() * animalTypes.length)];
+      console.log(followerType);
+      follower.spriteType = followerType;
+    }
+    return true;
   }
 
   /**
