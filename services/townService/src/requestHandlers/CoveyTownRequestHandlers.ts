@@ -2,6 +2,7 @@ import assert from 'assert';
 import { Socket } from 'socket.io';
 import {
   ConversationAreaCreateRequest,
+  PetAreaCreateRequest,
   ServerConversationArea,
 } from '../client/TownsServiceClient';
 import { ChatMessage, CoveyTownList, UserLocation } from '../CoveyTypes';
@@ -223,6 +224,32 @@ export function conversationAreaCreateHandler(
   };
 }
 
+export function petSpawnHandler(
+  _requestData: PetAreaCreateRequest,
+): ResponseEnvelope<Record<string, null>> {
+  const townsStore = CoveyTownsStore.getInstance();
+  const townController = townsStore.getControllerForTown(_requestData.coveyTownID);
+  if (!townController?.getSessionByToken(_requestData.sessionToken)) {
+    return {
+      isOK: false,
+      response: {},
+      message: `Unable to create pet type ${_requestData.petType}`,
+    };
+  }
+
+  const player = townController.getSessionByToken(_requestData.sessionToken)?.player;
+  let success = false;
+  if (player !== undefined) {
+    success = townController.addFollower(player, _requestData.petType);
+  }
+
+  return {
+    isOK: success,
+    response: {},
+    message: !success ? `Unable to create pet type ${_requestData.petType}` : undefined,
+  };
+}
+
 /**
  * An adapter between CoveyTownController's event interface (CoveyTownListener)
  * and the low-level network communication protocol
@@ -299,7 +326,7 @@ export function townSubscriptionHandler(socket: Socket): void {
     townController.updatePlayerLocation(s.player, movementData);
   });
 
-  socket.on('spawnFollower', () => {
-    townController.addFollower(s.player);
-  });
+  // socket.on('spawnFollower', () => {
+  //   townController.addFollower(s.player);
+  // });
 }

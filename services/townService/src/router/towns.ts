@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import io from 'socket.io';
 import {
   conversationAreaCreateHandler,
+  petSpawnHandler,
   townCreateHandler,
   townDeleteHandler,
   townJoinHandler,
@@ -100,12 +101,27 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
   });
 
   app.post('/towns/:townID/conversationAreas', express.json(), async (req, res) => {
-    console.log('Creating conv area');
     try {
       const result = await conversationAreaCreateHandler({
         coveyTownID: req.params.townID,
         sessionToken: req.body.sessionToken,
         conversationArea: req.body.conversationArea,
+      });
+      res.status(StatusCodes.OK).json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal server error, please see log in server for more details',
+      });
+    }
+  });
+
+  app.post('/towns/:townID/spawnPet', express.json(), async (req, res) => {
+    try {
+      const result = await petSpawnHandler({
+        coveyTownID: req.params.townID,
+        sessionToken: req.body.sessionToken,
+        petType: req.body.petType,
       });
       res.status(StatusCodes.OK).json(result);
     } catch (err) {

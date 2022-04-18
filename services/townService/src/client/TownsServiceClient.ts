@@ -1,19 +1,18 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import assert from 'assert';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { UserLocation } from '../CoveyTypes';
 
-
-export type ServerPlayer = { _id: string, _userName: string, location: UserLocation };
+export type ServerPlayer = { _id: string; _userName: string; location: UserLocation };
 
 /**
  * A bounding box, with a coordinate system that matches the frontend game engine's coordinates
  * The x,y position specifies the center of the box (NOT a corner).
  */
 export type BoundingBox = {
-  x: number,
-  y: number,
-  width: number,
-  height: number
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 export type ServerConversationArea = {
   label: string;
@@ -114,6 +113,11 @@ export interface ConversationAreaCreateRequest {
   conversationArea: ServerConversationArea;
 }
 
+export interface PetAreaCreateRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  petType: string;
+}
 /**
  * Envelope that wraps any response from the server
  */
@@ -127,7 +131,7 @@ export type CoveyTownInfo = {
   friendlyName: string;
   coveyTownID: string;
   currentOccupancy: number;
-  maximumOccupancy: number
+  maximumOccupancy: number;
 };
 
 export default class TownsServiceClient {
@@ -144,7 +148,10 @@ export default class TownsServiceClient {
     this._axios = axios.create({ baseURL });
   }
 
-  static unwrapOrThrowError<T>(response: AxiosResponse<ResponseEnvelope<T>>, ignoreResponse = false): T {
+  static unwrapOrThrowError<T>(
+    response: AxiosResponse<ResponseEnvelope<T>>,
+    ignoreResponse = false,
+  ): T {
     if (response.data.isOK) {
       if (ignoreResponse) {
         return {} as T;
@@ -156,17 +163,25 @@ export default class TownsServiceClient {
   }
 
   async createTown(requestData: TownCreateRequest): Promise<TownCreateResponse> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<TownCreateResponse>>('/towns', requestData);
+    const responseWrapper = await this._axios.post<ResponseEnvelope<TownCreateResponse>>(
+      '/towns',
+      requestData,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
   async updateTown(requestData: TownUpdateRequest): Promise<void> {
-    const responseWrapper = await this._axios.patch<ResponseEnvelope<void>>(`/towns/${requestData.coveyTownID}`, requestData);
+    const responseWrapper = await this._axios.patch<ResponseEnvelope<void>>(
+      `/towns/${requestData.coveyTownID}`,
+      requestData,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper, true);
   }
 
   async deleteTown(requestData: TownDeleteRequest): Promise<void> {
-    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(`/towns/${requestData.coveyTownID}/${requestData.coveyTownPassword}`);
+    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(
+      `/towns/${requestData.coveyTownID}/${requestData.coveyTownPassword}`,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper, true);
   }
 
@@ -180,9 +195,11 @@ export default class TownsServiceClient {
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
-  async createConversationArea(requestData: ConversationAreaCreateRequest) : Promise<void>{
-    const responseWrapper = await this._axios.post(`/towns/${requestData.coveyTownID}/conversationAreas`, requestData);
+  async createConversationArea(requestData: ConversationAreaCreateRequest): Promise<void> {
+    const responseWrapper = await this._axios.post(
+      `/towns/${requestData.coveyTownID}/conversationAreas`,
+      requestData,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
-
 }
