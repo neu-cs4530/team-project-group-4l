@@ -498,6 +498,12 @@ class CoveyGameScene extends Phaser.Scene {
         sprite,
         label: conversation.name,
       });
+      this.conversationAreas.push({
+        labelText,
+        topicText,
+        sprite,
+        label: conversation.name,
+      });
     });
 
     this.infoTextBox = this.add
