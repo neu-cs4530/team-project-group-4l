@@ -500,6 +500,12 @@ class CoveyGameScene extends Phaser.Scene {
         sprite,
         label: conversation.name,
       });
+      this.conversationAreas.push({
+        labelText,
+        topicText,
+        sprite,
+        label: conversation.name,
+      });
     });
 
     this.infoTextBox = this.add
@@ -625,6 +631,8 @@ class CoveyGameScene extends Phaser.Scene {
               coveyTownID:this.currentTownID, 
               petType:petAreaSprite.data.list.petType
             });
+            cursorKeys.space.reset();
+
         }
       },
     );
