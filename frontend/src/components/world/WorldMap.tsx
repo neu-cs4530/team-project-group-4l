@@ -10,7 +10,7 @@ import usePlayerMovement from '../../hooks/usePlayerMovement';
 import usePlayersInTown from '../../hooks/usePlayersInTown';
 import { Callback } from '../VideoCall/VideoFrontend/types';
 import NewConversationModal from './NewCoversationModal';
-import spawnPet, {PetAreaCreateRequest} from '../../classes/TownsServiceClient'
+import spawnPet from '../../classes/TownsServiceClient'
 
 
 // Original inspiration and code from:
@@ -69,7 +69,12 @@ class CoveyGameScene extends Phaser.Scene {
 
   private currentConversationArea?: ConversationGameObjects;
 
+
+
   private infoTextBox?: Phaser.GameObjects.Text;
+
+  private petInfoBox?: Phaser.GameObjects.Text;
+
 
   private setNewConversation: (conv: ConversationArea) => void;
 
@@ -348,6 +353,13 @@ class CoveyGameScene extends Phaser.Scene {
         this.lastLocation.y = body.y;
         this.lastLocation.rotation = primaryDirection || 'front';
         this.lastLocation.moving = isMoving;
+        this.petAreas.forEach(area => {
+          if (this.player) {
+            if ( !Phaser.Geom.Rectangle.Overlaps( area.sprite.getBounds(), this.player.sprite.getBounds(),)) {
+              this.petInfoBox?.setVisible(false);
+            }
+          };
+        })
         if (this.currentConversationArea) {
           if(this.currentConversationArea.conversationArea){
             this.lastLocation.conversationLabel = this.currentConversationArea.label;
@@ -370,6 +382,8 @@ class CoveyGameScene extends Phaser.Scene {
       if (this.requestToSpawnFollower()) {
         this.spawnFollower(this.myPlayerID); 
       }
+      
+      
     }
   }
 
@@ -520,6 +534,18 @@ class CoveyGameScene extends Phaser.Scene {
     this.infoTextBox.setVisible(false);
     this.infoTextBox.x = this.game.scale.width / 2 - this.infoTextBox.width / 2;
 
+    this.petInfoBox = this.add
+      .text(
+        this.game.scale.width / 2,
+        this.game.scale.height / 2,
+        "You can press space to spawn a pet inside the pet area now!",
+        { color: '#000000', backgroundColor: '#FFFFFF' },
+      )
+      .setScrollFactor(0)
+      .setDepth(30);
+    this.petInfoBox.setVisible(false);
+    this.petInfoBox.x = this.game.scale.width / 2 - this.petInfoBox.width / 2;
+
     const labels = map.filterObjects('Objects', obj => obj.name === 'label');
     labels.forEach(label => {
       if (label.x && label.y) {
@@ -602,12 +628,17 @@ class CoveyGameScene extends Phaser.Scene {
     this.physics.add.overlap(
       sprite,
       conversationSprites,
-      async (overlappingPlayer, conversationSprite) => {
+      (overlappingPlayer, conversationSprite) => {
         const conversationLabel = conversationSprite.name;
         const conv = this.conversationAreas.find(area => area.label === conversationLabel);
         this.currentConversationArea = conv;
         if (conv?.conversationArea) {
-          this.infoTextBox?.setVisible(true);
+          this.infoTextBox?.setVisible(false);
+          const localLastLocation = this.lastLocation;
+          if(localLastLocation && localLastLocation.conversationLabel !== conv.conversationArea.label){
+            localLastLocation.conversationLabel = conv.conversationArea.label;
+            this.emitMovement(localLastLocation);
+          }
         } else {
           if (cursorKeys.space.isDown) {
             const newConversation = new ConversationArea(
@@ -616,7 +647,7 @@ class CoveyGameScene extends Phaser.Scene {
             );
             this.setNewConversation(newConversation);
           }
-          this.infoTextBox?.setVisible(false);
+          this.infoTextBox?.setVisible(true);
         }
       },
     );
@@ -625,6 +656,7 @@ class CoveyGameScene extends Phaser.Scene {
       sprite,
       petAreaSprites,
       async (overlappingPlayer, petAreaSprite) => {
+        this.petInfoBox?.setVisible(true);
         if (cursorKeys.space.isDown) {
             await this.apiClient.spawnPet({
               sessionToken:this.sessionToken, 
