@@ -664,7 +664,6 @@ class CoveyGameScene extends Phaser.Scene {
               petType:petAreaSprite.data.list.petType
             });
             cursorKeys.space.reset();
-
         }
       },
     );
