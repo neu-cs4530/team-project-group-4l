@@ -665,7 +665,7 @@ class CoveyGameScene extends Phaser.Scene {
             });
             cursorKeys.space.reset();
         }
-      },
+      }, 
     );
 
     this.emitMovement({
