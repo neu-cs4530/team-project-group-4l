@@ -325,8 +325,4 @@ export function townSubscriptionHandler(socket: Socket): void {
   socket.on('playerMovement', (movementData: UserLocation) => {
     townController.updatePlayerLocation(s.player, movementData);
   });
-
-  // socket.on('spawnFollower', () => {
-  //   townController.addFollower(s.player);
-  // });
 }

@@ -74,6 +74,31 @@ describe('CoveyTownController', () => {
         expect(listener.onPlayerDisconnected).toBeCalledWith(player),
       );
     });
+    it('Should notify the listeners of all disconnected players and followers when destroySession is called', async () => {
+      const player = new Player('test player');
+      const session = await testingTown.addPlayer(player);
+
+      mockListeners.forEach(listener => testingTown.addTownListener(listener));
+
+      testingTown.addFollower(player, player.id);
+      testingTown.addFollower(player, player.id);
+      testingTown.addFollower(player, player.id);
+
+      const currentPlayers = [];
+      let currentPlayer: Player | undefined = player;
+      while (currentPlayer) {
+        currentPlayers.push(currentPlayer);
+        currentPlayer = currentPlayer.follower;
+      }
+      expect(currentPlayers.length).toBe(4);
+      expect(testingTown.players).toEqual(currentPlayers);
+
+      testingTown.destroySession(session);
+      mockListeners.forEach(listener =>
+        expect(listener.onPlayerDisconnected).toHaveBeenCalledTimes(4),
+      );
+      expect(testingTown.players).toEqual([]);
+    });
     it('should notify added listeners of new players when addPlayer is called', async () => {
       mockListeners.forEach(listener => testingTown.addTownListener(listener));
 
@@ -337,9 +362,6 @@ describe('CoveyTownController', () => {
     });
   });
   describe('addFollower', () => {
-    it('should do something',
-      async () => {
-
-      });
+    it('should do something', async () => {});
   });
 });

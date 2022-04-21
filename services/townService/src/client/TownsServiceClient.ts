@@ -57,8 +57,6 @@ export interface TownJoinResponse {
   isPubliclyListed: boolean;
   /** Conversation areas */
   conversationAreas: ServerConversationArea[];
-  /** Pet areas */
-  petAreas: ServerPetAreas[];
 }
 
 /**
