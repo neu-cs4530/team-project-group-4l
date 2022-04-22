@@ -1,8 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import assert from 'assert';
 import { ServerPlayer } from './Player';
-import { ServerConversationArea, ServerPetArea } from './ConversationArea';
-import BoundingBox from './BoundingBox';
+import { ServerConversationArea } from './ConversationArea';
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
  */

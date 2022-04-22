@@ -451,27 +451,25 @@ class CoveyGameScene extends Phaser.Scene {
       'Objects',
       obj => obj.type === 'petArea',
     );
-    console.log(petAreaObjects)
     const petAreaSprites = map.createFromObjects(
       'Objects',
       petAreaObjects.map(obj => ({ id: obj.id, key: obj.properties[0].value})),
     );
     petAreaSprites.forEach((s, index) => {
-      console.log(petAreaObjects[index].properties[0].value)
       s.type = petAreaObjects[index].properties[0].value;
     })
     this.physics.world.enable(petAreaSprites);
-    petAreaSprites.forEach((pet, index) => {
+    petAreaSprites.forEach((pet) => {
       
       const sprite = pet as Phaser.GameObjects.Sprite;
       sprite.y += sprite.displayHeight;
-      const labelText = this.add.text(
+      this.add.text(
         sprite.x - sprite.displayWidth / 2,
         sprite.y - sprite.displayHeight / 2,
         pet.name,
         { color: '#FFFFFF', backgroundColor: '#000000' },
       );
-      const topicText = this.add.text(
+      this.add.text(
         sprite.x - sprite.displayWidth / 2,
         sprite.y + sprite.displayHeight / 2,
         pet.type,
@@ -839,7 +837,7 @@ export default function WorldMap(): JSX.Element {
     return () => {
       game.destroy(true);
     };
-  }, [video, emitMovement, setNewConversation, myPlayerID, spawnFollower]);
+  }, [video, emitMovement, setNewConversation, myPlayerID, spawnFollower, apiClient, currentTownID, sessionToken]);
 
   useEffect(() => {
     const movementDispatcher = (updatedPlayers: ServerPlayer[]) => {
