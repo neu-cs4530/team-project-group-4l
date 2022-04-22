@@ -542,7 +542,8 @@ class CoveyGameScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(30);
     this.petInfoBox.setVisible(false);
-    this.petInfoBox.x = this.game.scale.width / 2 - this.petInfoBox.width / 2;
+    this.petInfoBox.x = this.game.scale.width / 2 ;
+
 
     const labels = map.filterObjects('Objects', obj => obj.name === 'label');
     labels.forEach(label => {
