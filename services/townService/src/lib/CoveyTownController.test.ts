@@ -23,6 +23,18 @@ function generateTestLocation(): UserLocation {
   };
 }
 
+function followerCount(player: Player) {
+  let output = 0;
+
+  let currentPlayer: Player | undefined = player.follower;
+  while (currentPlayer) {
+    output += 1;
+    currentPlayer = currentPlayer.follower;
+  }
+
+  return output;
+}
+
 describe('CoveyTownController', () => {
   beforeEach(() => {
     mockTwilioVideo.getTokenForTown.mockClear();
@@ -376,19 +388,314 @@ describe('CoveyTownController', () => {
 
         let playerLocations = [player.location];
 
-        for (let idx = 0; idx < 20; idx += 1) {
+        for (let idx = 0; idx < 2 * Player.PREVIOUS_STEP_SIZE; idx += 1) {
           expect(player.location).toEqual(playerLocations[playerLocations.length - 1]);
           const nextLocation = generateTestLocation();
           testingTown.updatePlayerLocation(player, nextLocation);
           expect(player.location).toEqual(nextLocation);
           expect(player.previousSteps).toEqual(playerLocations);
           playerLocations.push(nextLocation);
-          if (playerLocations.length > 10) {
-            playerLocations = playerLocations.splice(-10);
+          expect(player.previousSteps.length).toBeLessThanOrEqual(Player.PREVIOUS_STEP_SIZE);
+          if (playerLocations.length > Player.PREVIOUS_STEP_SIZE) {
+            playerLocations = playerLocations.splice(-Player.PREVIOUS_STEP_SIZE);
           }
         }
       });
-      it('Will update a followers location to the last provided player location it is following', () => {});
+      it('Will not update a followers location until the player its following has a queue size of at-least MAX_STEP_SIZE', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+
+        testingTown.addFollower(player, 'sprite');
+
+        if (player.follower) {
+          const followerLocation = player.follower.location;
+          for (let idx = 0; idx < Player.PREVIOUS_STEP_SIZE; idx += 1) {
+            testingTown.updatePlayerLocation(player, generateTestLocation());
+            expect(player.follower.location).toBe(followerLocation);
+          }
+          testingTown.updatePlayerLocation(player, generateTestLocation());
+          expect(player.follower.location).not.toBe(followerLocation);
+        } else {
+          fail('Follower not added properly');
+        }
+      });
+      it('If the player stops moving, the followers stop as well', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+
+        // Adding max followers to a player
+        for (let idx = 0; idx < Player.MAX_FOLLOWERS; idx += 1) {
+          testingTown.addFollower(player, 'sprite');
+        }
+        // Queing up player and its followers previousSteps
+        for (let idx = 0; idx < Player.PREVIOUS_STEP_SIZE * Player.PREVIOUS_STEP_SIZE; idx += 1) {
+          const location = generateTestLocation();
+          // Every location is moving to test this.
+          location.moving = true;
+          testingTown.updatePlayerLocation(player, location);
+        }
+        /**
+         * Returns whether or not any of the players or its followers has the moving
+         * field on its current location
+         * @param currentPlayer The player we are checking for
+         * Returns if any was moving, false otherwise
+         */
+        const checkMoving = (currentPlayer: Player | undefined) => {
+          let playerDepth = 0;
+          while (currentPlayer) {
+            playerDepth += 1;
+            if (currentPlayer.location.moving) {
+              return true;
+            }
+            currentPlayer = currentPlayer.follower;
+          }
+          expect(playerDepth).toBe(Player.MAX_FOLLOWERS + 1);
+          return false;
+        };
+
+        expect(checkMoving(player)).toBe(true);
+        const newPlayerLocation = generateTestLocation();
+        newPlayerLocation.moving = false;
+
+        testingTown.updatePlayerLocation(player, newPlayerLocation);
+        expect(checkMoving(player)).toBe(false);
+      });
+      it('Will correctly make the spawned followers location be the player it is following', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+
+        testingTown.updatePlayerLocation(player, generateTestLocation());
+
+        testingTown.addFollower(player, 'test');
+        if (player.follower) {
+          expect(player.follower.location).toBe(player.location);
+          // Moving the player around the map so its location is entirely different from its follower
+          for (let idx = 0; idx < 2 * Player.PREVIOUS_STEP_SIZE; idx += 1) {
+            testingTown.updatePlayerLocation(player, generateTestLocation());
+          }
+          expect(player.follower.location).not.toEqual(player.location);
+          testingTown.addFollower(player, 'test');
+          if (player.follower.follower) {
+            expect(player.follower.follower.location).toEqual(player.follower.location);
+          } else {
+            fail('Failed to add a follower to the follower');
+          }
+        } else {
+          fail('Player follower not correctly added');
+        }
+      });
+      it('Will update a followers location to the last provided player location it is following', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+
+        testingTown.addFollower(player, 'type');
+
+        // Queueing up the player queue to have a full previous steps stack
+        for (let idx = 0; idx < 2 * Player.PREVIOUS_STEP_SIZE; idx += 1) {
+          testingTown.updatePlayerLocation(player, generateTestLocation());
+        }
+
+        for (let idx = 0; idx < 10; idx += 1) {
+          expect(player.previousSteps.length).toBeGreaterThan(0);
+          const playerOldestLocation =
+            player.previousSteps[
+              Math.max(player.previousSteps.length - Player.PREVIOUS_STEP_SIZE, 0)
+            ];
+
+          testingTown.updatePlayerLocation(player, generateTestLocation());
+          if (player.follower) {
+            expect(player.follower.location).toEqual(playerOldestLocation);
+          } else {
+            fail('Follower is undefined');
+          }
+        }
+      });
+      it('Updates a chain of followers step queues for a provided player', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+        // Adding the max followers for a player;
+        for (let idx = 0; idx < Player.MAX_FOLLOWERS; idx += 1) {
+          testingTown.addFollower(player, 'test');
+        }
+
+        // Moving to Step Size ^2 random locations to move up a players queue
+        for (let idx = 0; idx < Player.PREVIOUS_STEP_SIZE * Player.PREVIOUS_STEP_SIZE; idx += 1) {
+          testingTown.updatePlayerLocation(player, generateTestLocation());
+        }
+
+        // Making max queue moves making sure each time it updates a location
+        for (let cIter = 0; cIter < Player.PREVIOUS_STEP_SIZE + 1; cIter += 1) {
+          // Marking which locations the followers and players are currently at
+          const previousLocations = [];
+          let currentPlayer: Player | undefined = player;
+          while (currentPlayer) {
+            previousLocations.push(
+              currentPlayer.previousSteps[
+                Math.max(player.previousSteps.length - Player.PREVIOUS_STEP_SIZE, 0)
+              ],
+            );
+            currentPlayer = currentPlayer.follower;
+          }
+
+          testingTown.updatePlayerLocation(player, generateTestLocation());
+          currentPlayer = player.follower;
+
+          for (let idx = 1; idx < previousLocations.length; idx += 1) {
+            if (currentPlayer) {
+              expect(currentPlayer.location).toEqual(previousLocations[idx - 1]);
+              currentPlayer = currentPlayer.follower;
+            } else {
+              fail('Current Player is undefined when it should not be');
+            }
+          }
+        }
+      });
+      it('Correctly notifies any listener of all followers that need updates with a player update', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+        // Adding the max followers for a player;
+        for (let idx = 0; idx < Player.MAX_FOLLOWERS; idx += 1) {
+          testingTown.addFollower(player, 'test');
+        }
+
+        // Moving to STEPSIZE^2 random locations to move up a players queue and its followers
+        for (let idx = 0; idx < Player.PREVIOUS_STEP_SIZE * Player.PREVIOUS_STEP_SIZE; idx += 1) {
+          testingTown.updatePlayerLocation(player, generateTestLocation());
+        }
+
+        const mockListener = mock<CoveyTownListener>();
+        testingTown.addTownListener(mockListener);
+
+        for (let idx = 0; idx < Player.PREVIOUS_STEP_SIZE; idx += 1) {
+          testingTown.updatePlayerLocation(player, generateTestLocation());
+        }
+        expect(mockListener.onPlayerMoved).toHaveBeenCalledTimes(Player.PREVIOUS_STEP_SIZE);
+
+        const playerFollowerList = [player];
+        let currentFollower: Player | undefined = player.follower;
+        while (currentFollower) {
+          playerFollowerList.push(currentFollower);
+          currentFollower = currentFollower.follower;
+        }
+        expect(playerFollowerList.length).toBe(Player.PREVIOUS_STEP_SIZE);
+        expect(mockListener.onPlayerMoved).toHaveBeenLastCalledWith(playerFollowerList);
+        // expect(mockListener.onPlayerMoved).toHaveBeenLastCalledWith(playerFollowerList);
+      });
+    });
+    describe('Removing followers from the map', () => {
+      it('Correctly removes followers as well when a player is deleted', async () => {
+        const player = new Player(nanoid());
+        const player2 = new Player(nanoid());
+        const player3 = new Player(nanoid());
+
+        const p1SessionId = await testingTown.addPlayer(player);
+        const p2SessionId = await testingTown.addPlayer(player2);
+        const p3SessionId = await testingTown.addPlayer(player3);
+
+        for (let idx = 0; idx < Player.PREVIOUS_STEP_SIZE; idx += 1) {
+          testingTown.addFollower(player, 'sprite_type');
+          testingTown.addFollower(player2, 'sprite');
+          testingTown.addFollower(player3, 'sprite3');
+        }
+
+        expect(testingTown.players.length).toBe(3 * Player.PREVIOUS_STEP_SIZE);
+
+        testingTown.destroySession(p1SessionId);
+        expect(testingTown.players.length).toBe(2 * Player.PREVIOUS_STEP_SIZE);
+
+        testingTown.destroySession(p2SessionId);
+        expect(testingTown.players.length).toBe(Player.PREVIOUS_STEP_SIZE);
+
+        testingTown.destroySession(p3SessionId);
+        expect(testingTown.players.length).toBe(0);
+      });
+      it('Sends out delete notifications for all followers tied to a player when a player disconnects', async () => {
+        const mockListener = mock<CoveyTownListener>();
+        const player = new Player(nanoid());
+
+        const playerSessionID = await testingTown.addPlayer(player);
+        testingTown.addTownListener(mockListener);
+
+        for (let idx = 0; idx < Player.PREVIOUS_STEP_SIZE; idx += 1) {
+          testingTown.addFollower(player, 'sprite');
+        }
+        expect(testingTown.players.length).toBe(Player.MAX_FOLLOWERS + 1);
+
+        expect(mockListener.onPlayerDisconnected).toHaveBeenCalledTimes(0);
+        testingTown.destroySession(playerSessionID);
+        expect(mockListener.onPlayerDisconnected).toHaveBeenCalledTimes(Player.MAX_FOLLOWERS + 1);
+        expect(testingTown.players.length).toBe(0);
+      });
+      it('Sends out the correct followers to destroy when a player leaves a session', async () => {
+        const mockListener = mock<CoveyTownListener>();
+        const player = new Player(nanoid());
+        const player2 = new Player(nanoid());
+        const player3 = new Player(nanoid());
+
+        const playerSessionID = await testingTown.addPlayer(player);
+        const player2SessionID = await testingTown.addPlayer(player2);
+        const player3SessionID = await testingTown.addPlayer(player3);
+
+        testingTown.addTownListener(mockListener);
+
+        for (let idx = 0; idx < Player.MAX_FOLLOWERS; idx += 1) {
+          testingTown.addFollower(player, 'sprite');
+          testingTown.addFollower(player2, 'sprite');
+          testingTown.addFollower(player3, 'sprite');
+        }
+
+        let removedPlayers: Player[] = [];
+
+        mockListener.onPlayerDisconnected.mockImplementation(removedPlayer => {
+          removedPlayers.push(removedPlayer);
+        });
+        const player1PlayerAndFollowers: Player[] = [player];
+        const player2PlayerAndFollowers: Player[] = [player2];
+        const player3PlayerAndFollowers: Player[] = [player3];
+
+        expect(followerCount(player)).toBe(Player.MAX_FOLLOWERS);
+        expect(followerCount(player2)).toBe(Player.MAX_FOLLOWERS);
+        expect(followerCount(player3)).toBe(Player.MAX_FOLLOWERS);
+
+        const playersLists = [
+          player1PlayerAndFollowers,
+          player2PlayerAndFollowers,
+          player3PlayerAndFollowers,
+        ];
+        for (let idx = 0; idx < Player.MAX_FOLLOWERS; idx += 1) {
+          for (let cList = 0; cList < playersLists.length; cList += 1) {
+            const selectedList = playersLists[cList];
+            const previousPlayer = selectedList[selectedList.length - 1];
+            if (previousPlayer.follower) {
+              selectedList.push(previousPlayer.follower);
+            } else {
+              fail('A provided list is missing a follower');
+            }
+          }
+        }
+
+        expect(mockListener.onPlayerDisconnected).toHaveBeenCalledTimes(0);
+        testingTown.destroySession(playerSessionID);
+        // Making sure that the removed players is player 1 and its followers
+        expect(removedPlayers.length).toBe(Player.MAX_FOLLOWERS + 1);
+        expect(removedPlayers).toEqual(player1PlayerAndFollowers);
+
+        removedPlayers = [];
+        testingTown.destroySession(player2SessionID);
+        expect(removedPlayers.length).toBe(Player.MAX_FOLLOWERS + 1);
+        expect(removedPlayers).toEqual(player2PlayerAndFollowers);
+
+        removedPlayers = [];
+        testingTown.destroySession(player3SessionID);
+        expect(removedPlayers.length).toBe(Player.MAX_FOLLOWERS + 1);
+        expect(removedPlayers).toEqual(player3PlayerAndFollowers);
+      });
+    });
+    describe('Conversation Areas for Adding Followers', () => {
+      it('If a player is inside a Conversation area when a follower is spawned this follower should also be inside it', () => {});
+      it('If a player is not inside a Area when a follower is spawned this follower also isnt in one', () => {});
+      it('If followers join a conversation area, the listeners are notified', () => {});
+      it('If a follower joins the conversation area, these methods are properly called', () => {});
     });
   });
 });
