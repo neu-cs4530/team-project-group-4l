@@ -360,8 +360,35 @@ describe('CoveyTownController', () => {
       testingTown.updatePlayerLocation(player, newLocation);
       expect(mockListener.onConversationAreaUpdated).toHaveBeenCalledTimes(1);
     });
-  });
-  describe('addFollower', () => {
-    it('should do something', async () => {});
+    describe('Update Player Location for Followers', () => {
+      it('Should correctly add a players previous locations to the stack of their locations if it is not undefined', async () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+        expect(player.location).toBeDefined();
+        const previousLocations = [player.location, generateTestLocation()];
+        testingTown.updatePlayerLocation(player, previousLocations[1]);
+        expect(player.location).toEqual(previousLocations[1]);
+        expect(player.previousSteps).toEqual([previousLocations[0]]);
+      });
+      it('Should only keep the most recent 10 locations from a players previous locations', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+
+        let playerLocations = [player.location];
+
+        for (let idx = 0; idx < 20; idx += 1) {
+          expect(player.location).toEqual(playerLocations[playerLocations.length - 1]);
+          const nextLocation = generateTestLocation();
+          testingTown.updatePlayerLocation(player, nextLocation);
+          expect(player.location).toEqual(nextLocation);
+          expect(player.previousSteps).toEqual(playerLocations);
+          playerLocations.push(nextLocation);
+          if (playerLocations.length > 10) {
+            playerLocations = playerLocations.splice(-10);
+          }
+        }
+      });
+      it('Will update a followers location to the last provided player location it is following', () => {});
+    });
   });
 });

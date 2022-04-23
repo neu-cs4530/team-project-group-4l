@@ -251,10 +251,11 @@ export default class CoveyTownController {
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(conversation));
       }
     }
+    if (player.previousSteps.length > 5) {
+      player.previousSteps = player.previousSteps.splice(-8);
+    }
 
-    player.previousSteps = player.previousSteps.splice(-10);
-
-    if (player.follower !== undefined && player.previousSteps.length >= 10) {
+    if (player.follower !== undefined && player.previousSteps.length >= 8) {
       const oldestLocation = player.previousSteps.shift();
 
       if (oldestLocation !== undefined) {

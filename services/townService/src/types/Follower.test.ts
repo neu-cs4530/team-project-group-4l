@@ -8,6 +8,23 @@ import Player from './Player';
 const mockTwilioVideo = mockDeep<TwilioVideo>();
 jest.spyOn(TwilioVideo, 'getInstance').mockReturnValue(mockTwilioVideo);
 
+/**
+ * Calculates how many followers exist in a provived player.
+ * @param player The Player we aare calculating the number of followers for
+ * Returns the number of followers following a player
+ */
+function followerCount(player: Player) {
+  let output = 0;
+
+  let currentPlayer: Player | undefined = player.follower;
+  while (currentPlayer) {
+    output += 1;
+    currentPlayer = currentPlayer.follower;
+  }
+
+  return output;
+}
+
 describe('Follower', () => {
   mockTwilioVideo.getTokenForTown.mockClear();
   let testingTown: CoveyTownController;
@@ -71,7 +88,7 @@ describe('Follower', () => {
       expect(player2.follower?.userName).toBe('Pet');
     });
     it('addFollower should not add more than seven followers to a player', () => {
-      let player1 = new Player('first test player');
+      const player1 = new Player('first test player');
       testingTown.addPlayer(player1);
 
       testingTown.addFollower(player1, player1.id);
@@ -83,13 +100,7 @@ describe('Follower', () => {
       testingTown.addFollower(player1, player1.id);
       testingTown.addFollower(player1, player1.id);
 
-      let currentDepth = 0;
-      while (player1.follower !== undefined) {
-        player1 = player1.follower;
-        currentDepth += 1;
-      }
-
-      expect(currentDepth).toEqual(7);
+      expect(followerCount(player1)).toEqual(7);
     });
 
     it('should allow multiple players on the map to have pets', () => {
@@ -102,6 +113,25 @@ describe('Follower', () => {
       testingTown.addFollower(player2, player2.id);
       expect(player1.follower?.userName).toBe('Pet');
       expect(player2.follower?.userName).toBe('Pet');
+    });
+    it('Should add the correct Sprite Type for each follower added', () => {
+      const player1 = new Player('first test player');
+      testingTown.addPlayer(player1);
+      expect(player1.follower).toBeUndefined();
+      const followerSpriteTypes = ['sp1', 'sp2', 'sp3', 'sp4', 'sp5', 'sp6', 'sp7', 'sp8'];
+      for (let idx = 0; idx < followerSpriteTypes.length; idx += 1) {
+        testingTown.addFollower(player1, followerSpriteTypes[idx]);
+      }
+      expect(followerCount(player1)).toBe(7);
+      let currentPlayer = player1.follower;
+      for (let idx = 0; idx < 7; idx += 1) {
+        if (currentPlayer !== undefined) {
+          expect(currentPlayer.spriteType).toEqual(followerSpriteTypes[idx]);
+        } else {
+          fail('Undefined follower when the current follower should be defined');
+        }
+        currentPlayer = currentPlayer.follower;
+      }
     });
   });
 });
