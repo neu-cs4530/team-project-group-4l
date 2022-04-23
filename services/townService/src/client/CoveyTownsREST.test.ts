@@ -232,4 +232,30 @@ describe('TownsServiceAPIREST', () => {
       expect(res2.coveyUserID).toBeDefined();
     });
   });
+
+  describe('Follower API Spawning', async () => {
+    it('Correctly spawns a follower from an API call for a specified player', async () => {
+      const town = await createTownForTesting('test', true);
+
+      const joinedFirst = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: town.coveyTownID,
+      });
+
+      expect(joinedFirst).toBeDefined();
+      expect(joinedFirst.coveySessionToken).toBeDefined();
+      expect(joinedFirst.coveyUserID).toBeDefined();
+
+      await apiClient.createFollower({
+        coveyTownID: town.coveyTownID,
+        sessionToken: joinedFirst.coveySessionToken,
+        petType: 'dog-orange',
+      });
+      const joinedSecond = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: town.coveyTownID,
+      });
+      expect(joinedSecond.currentPlayers.length).toBe(3);
+    });
+  });
 });

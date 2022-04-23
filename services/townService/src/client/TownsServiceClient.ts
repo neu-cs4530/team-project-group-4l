@@ -200,4 +200,12 @@ export default class TownsServiceClient {
     );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
+
+  async createFollower(requestData: PetAreaCreateRequest): Promise<void> {
+    const responseWrapper = await this._axios.post(
+      `/towns/${requestData.coveyTownID}/spawnPet`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
 }
