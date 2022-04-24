@@ -133,7 +133,7 @@ export default class CoveyTownController {
       currentDepth += 1;
     }
 
-    if (currentDepth <= 6) {
+    if (currentDepth < Player.MAX_FOLLOWERS) {
       player.follower = follower;
       follower.location = player.location;
       follower.activeConversationArea = player.activeConversationArea;
@@ -237,7 +237,6 @@ export default class CoveyTownController {
     );
     const prevConversation = player.activeConversationArea;
 
-    // const prevLocation = player.location;
     player.previousSteps.push(player.location);
     player.location = location;
     player.activeConversationArea = conversation;
@@ -251,10 +250,11 @@ export default class CoveyTownController {
         this._listeners.forEach(listener => listener.onConversationAreaUpdated(conversation));
       }
     }
+    if (player.previousSteps.length > Player.PREVIOUS_STEP_SIZE) {
+      player.previousSteps = player.previousSteps.splice(-Player.PREVIOUS_STEP_SIZE);
+    }
 
-    player.previousSteps = player.previousSteps.splice(-10);
-
-    if (player.follower !== undefined && player.previousSteps.length >= 10) {
+    if (player.follower !== undefined && player.previousSteps.length >= Player.PREVIOUS_STEP_SIZE) {
       const oldestLocation = player.previousSteps.shift();
 
       if (oldestLocation !== undefined) {
@@ -263,7 +263,7 @@ export default class CoveyTownController {
           oldestLocation,
           playerMoving,
         );
-        updatedPlayers.push(player);
+        updatedPlayers.splice(0, 0, player);
         return updatedPlayers;
       }
     } else {

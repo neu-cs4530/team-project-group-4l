@@ -25,6 +25,12 @@ export default class Player {
   /** The current ConversationArea that the player is in, or undefined if they are not located within one */
   private _activeConversationArea?: ServerConversationArea;
 
+  // The number of previous steps we keep track of, keeps the STEP_SIZE number of last moved positions
+  public static PREVIOUS_STEP_SIZE = 8;
+
+  // The number of followers a player can have at max
+  public static MAX_FOLLOWERS = 7;
+
   constructor(userName: string) {
     this.location = {
       x: 0,
