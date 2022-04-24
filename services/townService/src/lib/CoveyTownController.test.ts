@@ -692,10 +692,116 @@ describe('CoveyTownController', () => {
       });
     });
     describe('Conversation Areas for Adding Followers', () => {
-      it('If a player is inside a Conversation area when a follower is spawned this follower should also be inside it', () => {});
-      it('If a player is not inside a Area when a follower is spawned this follower also isnt in one', () => {});
-      it('If followers join a conversation area, the listeners are notified', () => {});
-      it('If a follower joins the conversation area, these methods are properly called', () => {});
+      it('If a player is inside a Conversation area when a follower is spawned this follower should also be inside it', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+        const newConversationArea = TestUtils.createConversationForTesting({
+          boundingBox: { x: 10, y: 10, height: 5, width: 5 },
+        });
+        testingTown.addConversationArea(newConversationArea);
+        const newLocation: UserLocation = {
+          moving: false,
+          rotation: 'front',
+          x: 25,
+          y: 25,
+          conversationLabel: newConversationArea.label,
+        };
+        testingTown.updatePlayerLocation(player, newLocation);
+        expect(player.activeConversationArea?.label).toEqual(newConversationArea.label);
+        expect(player.activeConversationArea?.topic).toEqual(newConversationArea.topic);
+
+        testingTown.addFollower(player, 'test');
+        if (player.follower) {
+          expect(player.follower.activeConversationArea).toBeDefined();
+          expect(player.follower.activeConversationArea).toBe(player.activeConversationArea);
+        } else {
+          fail('The provided follower failed to be added');
+        }
+      });
+      it('If a player is not inside a Area when a follower is spawned this follower also isnt in one', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+
+        expect(player.activeConversationArea).not.toBeDefined();
+
+        testingTown.addFollower(player, 'test');
+        if (player.follower) {
+          expect(player.follower.activeConversationArea).not.toBeDefined();
+        } else {
+          fail('The provided follower failed to be added');
+        }
+      });
+      it('If followers join a conversation area, the listeners are notified', () => {
+        const mockListeners = [
+          mock<CoveyTownListener>(),
+          mock<CoveyTownListener>(),
+          mock<CoveyTownListener>(),
+        ];
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+        mockListeners.forEach(listener => testingTown.addTownListener(listener));
+
+        const newConversationArea = TestUtils.createConversationForTesting({
+          boundingBox: { x: 10, y: 10, height: 5, width: 5 },
+        });
+        testingTown.addConversationArea(newConversationArea);
+        mockListeners.forEach(listener =>
+          expect(listener.onConversationAreaUpdated).toHaveBeenCalledTimes(1),
+        );
+        const newLocation: UserLocation = {
+          moving: false,
+          rotation: 'front',
+          x: 25,
+          y: 25,
+          conversationLabel: newConversationArea.label,
+        };
+        testingTown.updatePlayerLocation(player, newLocation);
+        mockListeners.forEach(listener =>
+          expect(listener.onConversationAreaUpdated).toHaveBeenCalledTimes(2),
+        );
+        testingTown.addFollower(player, 'test');
+        mockListeners.forEach(listener =>
+          expect(listener.onConversationAreaUpdated).toHaveBeenCalledTimes(3),
+        );
+        testingTown.addFollower(player, 'test');
+        mockListeners.forEach(listener =>
+          expect(listener.onConversationAreaUpdated).toHaveBeenCalledTimes(4),
+        );
+      });
+      it('If a follower joins the conversation area, they are actually added to the areas occupants', () => {
+        const player = new Player(nanoid());
+        testingTown.addPlayer(player);
+
+        const newConversationArea = TestUtils.createConversationForTesting({
+          boundingBox: { x: 10, y: 10, height: 5, width: 5 },
+        });
+        testingTown.addConversationArea(newConversationArea);
+        const newLocation: UserLocation = {
+          moving: false,
+          rotation: 'front',
+          x: 25,
+          y: 25,
+          conversationLabel: newConversationArea.label,
+        };
+        testingTown.updatePlayerLocation(player, newLocation);
+        if (player.activeConversationArea) {
+          expect(player.activeConversationArea.occupantsByID).toEqual([player.id]);
+
+          for (let idx = 0; idx < Player.MAX_FOLLOWERS; idx += 1) {
+            testingTown.addFollower(player, 'test');
+          }
+          expect(player.activeConversationArea.occupantsByID.length).toBe(Player.MAX_FOLLOWERS + 1);
+          const playerAndFollowerIds = [player.id];
+          let currentFollower = player.follower;
+          while (currentFollower) {
+            playerAndFollowerIds.push(currentFollower.id);
+            currentFollower = currentFollower.follower;
+          }
+          expect(player.activeConversationArea.occupantsByID).toEqual(playerAndFollowerIds);
+        } else {
+          fail('Player should be in a conversation area that is defined');
+        }
+      });
     });
   });
 });
