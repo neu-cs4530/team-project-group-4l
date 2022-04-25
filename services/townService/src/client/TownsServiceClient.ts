@@ -20,11 +20,6 @@ export type ServerConversationArea = {
   occupantsByID: string[];
   boundingBox: BoundingBox;
 };
-export type ServerPetArea = {
-  label: string;
-  occupantsByID: string[];
-  boundingBox: BoundingBox;
-};
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -111,6 +106,12 @@ export interface ConversationAreaCreateRequest {
   conversationArea: ServerConversationArea;
 }
 
+/**
+ * Envelope that wraps any response from the server for creating pet areas.
+ * coveyTownID: The town id
+ * sessionToken: The user session token
+ * petType: The type of pet that should be spawned.
+ */
 export interface PetAreaCreateRequest {
   coveyTownID: string;
   sessionToken: string;

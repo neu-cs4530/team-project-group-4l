@@ -116,6 +116,10 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
     }
   });
 
+  /**
+   * POST endpoint for spawning a pet for a given user. Takes as input the
+   * town, session token, and pet type and spawns it if it should be spawned.
+   */
   app.post('/towns/:townID/spawnPet', express.json(), async (req, res) => {
     try {
       const result = await petSpawnHandler({

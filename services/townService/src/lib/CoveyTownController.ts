@@ -1,5 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import { BoundingBox, ServerConversationArea, ServerPetArea } from '../client/TownsServiceClient';
+import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
@@ -54,10 +54,6 @@ export default class CoveyTownController {
     return this._conversationAreas;
   }
 
-  get petAreas(): ServerPetArea[] {
-    return this._petAreas;
-  }
-
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
@@ -72,9 +68,6 @@ export default class CoveyTownController {
 
   /** The list of currently active ConversationAreas in this town */
   private _conversationAreas: ServerConversationArea[] = [];
-
-  /** The list of PetAreas in this town */
-  private _petAreas: ServerPetArea[] = [];
 
   private readonly _coveyTownID: string;
 
@@ -150,20 +143,6 @@ export default class CoveyTownController {
       follower.spriteType = followerType;
     }
     return true;
-  }
-
-  /**
-   * Checks whether or not a player is within any PetAreas
-   * @param player The Player to determine the location of.
-   */
-  inPetArea(player: Player): boolean {
-    let withinArea = false;
-    this.petAreas.forEach(area => {
-      if (player.isWithinPetArea(area)) {
-        withinArea = true;
-      }
-    });
-    return withinArea;
   }
 
   /**
@@ -343,12 +322,6 @@ export default class CoveyTownController {
     return true;
   }
 
-  addPetArea(_petArea: ServerPetArea): boolean {
-    const newArea: ServerPetArea = Object.assign(_petArea);
-    this._petAreas.push(newArea);
-    return true;
-  }
-
   /**
    * Detects whether two bounding boxes overlap and share any points
    *
@@ -407,22 +380,5 @@ export default class CoveyTownController {
 
   disconnectAllPlayers(): void {
     this._listeners.forEach(listener => listener.onTownDestroyed());
-  }
-
-  // Function to add new petAreas to the town
-  addPetAreas(_petArea: ServerPetArea): boolean {
-    if (
-      this._petAreas.find(eachPetA =>
-        CoveyTownController.boxesOverlap(eachPetA.boundingBox, _petArea.boundingBox),
-      ) !== undefined
-    ) {
-      return false;
-    }
-
-    this._petAreas.push(_petArea);
-    const playersInThisPet = this.players.filter(player => player.isWithinPetArea(_petArea));
-
-    _petArea.occupantsByID = playersInThisPet.map(player => player.id);
-    return true;
   }
 }

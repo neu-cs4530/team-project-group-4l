@@ -1,5 +1,4 @@
 import { mockDeep } from 'jest-mock-extended';
-import * as TestUtils from '../client/TestUtils';
 import { UserLocation } from '../CoveyTypes';
 import CoveyTownController from '../lib/CoveyTownController';
 import TwilioVideo from '../lib/TwilioVideo';
@@ -48,8 +47,6 @@ describe('Follower', () => {
       const player = new Player('test player');
       testingTown.addPlayer(player);
       expect(player.follower).toBe(undefined);
-      const petArea = TestUtils.createPetAreaForTesting();
-      testingTown.addPetArea(petArea);
       const location: UserLocation = { moving: false, rotation: 'front', x: 400, y: 400 };
       testingTown.updatePlayerLocation(player, location);
       testingTown.addFollower(player, player.id);
