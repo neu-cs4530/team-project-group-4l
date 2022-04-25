@@ -463,13 +463,14 @@ class CoveyGameScene extends Phaser.Scene {
       
       const sprite = pet as Phaser.GameObjects.Sprite;
       sprite.y += sprite.displayHeight;
-      this.add.text(
+      const labelText = this.add.text(
         sprite.x - sprite.displayWidth / 2,
         sprite.y - sprite.displayHeight / 2,
         pet.name,
         { color: '#FFFFFF', backgroundColor: '#000000' },
       );
-      this.add.text(
+      
+      const topicText = this.add.text(
         sprite.x - sprite.displayWidth / 2,
         sprite.y + sprite.displayHeight / 2,
         pet.type,
