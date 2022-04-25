@@ -224,6 +224,14 @@ export function conversationAreaCreateHandler(
   };
 }
 
+/**
+ * Handler for spawning pets. Provided the request data necessary for detemrining
+ * what kind of pet should be spawned spawns a pet for the user if it can be spawned.
+ * @param _requestData The provided data necessary for spawning this pet
+ * Includes the session, the town, and the type of pet.
+ * @returns success if it successfully spawned the pet with the relevant message or
+ * a failure message if the pet couldnt be spawned.
+ */
 export function petSpawnHandler(
   _requestData: PetAreaCreateRequest,
 ): ResponseEnvelope<Record<string, null>> {

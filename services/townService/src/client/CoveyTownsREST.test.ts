@@ -233,7 +233,7 @@ describe('TownsServiceAPIREST', () => {
     });
   });
 
-  describe('Follower API Spawning', async () => {
+  describe('Follower API Spawning', () => {
     it('Correctly spawns a follower from an API call for a specified player', async () => {
       const town = await createTownForTesting('test', true);
 
