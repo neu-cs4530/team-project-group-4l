@@ -12,8 +12,10 @@ export default class Player {
   /** The follower of this Player, or undefined if one has not been created * */
   private _follower?: Player;
 
+  // The previous points on the map they have been at. Stored as a stack of max size PREVIOUS_STEP_SIZE
   public previousSteps: UserLocation[] = [];
 
+  // The type of sprite that this player is, utilized so that the frontend knows that kind of player this is.
   public spriteType = 'atlas';
 
   /** The unique identifier for this player * */
