@@ -223,9 +223,6 @@ class CoveyGameScene extends Phaser.Scene {
       let { sprite } = myPlayer;
       if (!sprite) {
         sprite = this.physics.add
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore - JB todo
-          
           .sprite(0, 0, myPlayer.spriteType, 'misa-front')
           .setSize(30, 40)
           .setOffset(0, 24);
@@ -405,8 +402,7 @@ class CoveyGameScene extends Phaser.Scene {
     ].map(v => map.addTilesetImage(v));
 
     // Parameters: layer name (or index) from Tiled, tileset, x, y
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const belowLayer = map.createLayer('Below Player', tileset, 0, 0);
+    map.createLayer('Below Player', tileset, 0, 0);
     const wallsLayer = map.createLayer('Walls', tileset, 0, 0);
     const onTheWallsLayer = map.createLayer('On The Walls', tileset, 0, 0);
     wallsLayer.setCollisionByProperty({ collides: true });
@@ -673,8 +669,6 @@ class CoveyGameScene extends Phaser.Scene {
     this.emitMovement({
       rotation: 'front',
       moving: false,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - JB todo
       x: spawnPoint.x,
       y: spawnPoint.y,
     });

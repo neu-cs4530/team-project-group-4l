@@ -133,7 +133,6 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
   const [playerMovementCallbacks] = useState<PlayerMovementCallback[]>([]);
   const [playersInTown, setPlayersInTown] = useState<Player[]>([]);
   const [nearbyPlayers, setNearbyPlayers] = useState<Player[]>([]);
-  // const [currentLocation, setCurrentLocation] = useState<UserLocation>({moving: false, rotation: 'front', x: 0, y: 0});
   const [conversationAreas, setConversationAreas] = useState<ConversationArea[]>([]);
 
   const setupGameController = useCallback(
@@ -213,7 +212,6 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           if (player._id !== gamePlayerID) {
             const now = Date.now();
             playersToUpdate.push(player); 
-            // playerMovementCallbacks.forEach(cb => cb([player]));
             if (
               !player.location.moving ||
               now - lastRecalculateNearbyPlayers > CALCULATE_NEARBY_PLAYERS_MOVING_DELAY_MS
