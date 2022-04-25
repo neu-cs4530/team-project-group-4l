@@ -479,6 +479,13 @@ class CoveyGameScene extends Phaser.Scene {
       );
       sprite.setTintFill();
       sprite.setAlpha(0.3);
+
+      this.petAreas.push({
+        labelText,
+        topicText,
+        sprite,
+        label: pet.name,
+      });
     });
 
     const conversationAreaObjects = map.filterObjects(
@@ -508,12 +515,7 @@ class CoveyGameScene extends Phaser.Scene {
       sprite.setTintFill();
       sprite.setAlpha(0.3);
 
-      this.petAreas.push({
-        labelText,
-        topicText,
-        sprite,
-        label: conversation.name,
-      });
+      
       this.conversationAreas.push({
         labelText,
         topicText,
